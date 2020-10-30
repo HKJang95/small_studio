@@ -17,6 +17,7 @@ CCrevisCtrl::~CCrevisCtrl()
 {
 	bool isopen = false;
 	ST_IsOpenDevice(m_hDevice, &isopen);
+	ST_AcqStop(m_hDevice);
 	if (isopen)
 	{
 		CloseDevice();
