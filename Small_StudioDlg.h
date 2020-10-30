@@ -39,10 +39,14 @@ public:
 	afx_msg void OnBnClickedCam2play();
 	afx_msg void OnDestroy();
 
+private:
+	BOOL camOpenSeq(int dispNum);
+
 public:
-	bool			m_IsSystemInit;
-	CCrevisCtrl*	m_pCamCtrl1;
-	CCrevisCtrl*	m_pCamCtrl2;
-	INT32			m_statusCode;
-	CString			m_strErr;
+	bool			m_IsSystemInit;		// Camera SDK Init 상태 점검입니다.
+	BOOL			m_IsOpen[MAXCAM];
+	CCrevisCtrl*	m_pCamCtrl[MAXCAM]; // 카메라용 Class 객체 포인터입니다. 
+	INT32			m_statusCode;		// 프로그램 에러 코드를 저장하는 변수입니다.
+	CString			m_strErr;			// 출력할 에러 String입니다
+	CString			m_CamIP[MAXCAM];	// 사용자로부터 입력받을 IP 주소 String입니다.
 };

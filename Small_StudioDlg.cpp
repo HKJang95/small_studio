@@ -9,10 +9,10 @@
 #include "afxdialogex.h"
 
 
+
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
-
 
 // 응용 프로그램 정보에 사용되는 CAboutDlg 대화 상자입니다.
 
@@ -52,12 +52,17 @@ END_MESSAGE_MAP()
 CSmall_StudioDlg::CSmall_StudioDlg(CWnd* pParent /*=NULL*/)
 	: CDialogEx(CSmall_StudioDlg::IDD, pParent)
 	, m_IsSystemInit(false)
-	, m_pCamCtrl1(NULL)
-	, m_pCamCtrl2(NULL)
 	, m_statusCode(-99999)
 	, m_strErr(_T(""))
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
+
+	for (int i = 0; i < MAXCAM; i++)
+	{
+		m_pCamCtrl[i] = NULL;
+		m_CamIP[i] = _T("");
+		m_IsOpen[i] = FALSE;
+	}
 }
 
 void CSmall_StudioDlg::DoDataExchange(CDataExchange* pDX)
@@ -176,6 +181,7 @@ HCURSOR CSmall_StudioDlg::OnQueryDragIcon()
 void CSmall_StudioDlg::OnDestroy()
 {
 	CDialogEx::OnDestroy();
+	
 
 	if (m_IsSystemInit)
 	{
@@ -183,33 +189,74 @@ void CSmall_StudioDlg::OnDestroy()
 	}
 }
 
-
-void CSmall_StudioDlg::OnBnClickedCam1open()
+BOOL CSmall_StudioDlg::camOpenSeq(int dispNum)
 {
 	if (!m_IsSystemInit)
 	{
 		AfxMessageBox(_T("System Init이 되지 않았습니다. 카메라를 사용할 수 없습니다."));
-		return;
+		return FALSE;
 	}
-	
-	m_pCamCtrl1 = new CCrevisCtrl(0);
 
-	m_statusCode = m_pCamCtrl1->OpenDevice();
-	
-	if (m_statusCode == CAMERA_OPEN_ERROR)
+	m_pCamCtrl[dispNum] = new CCrevisCtrl(m_CamIP[dispNum]);
+	m_statusCode = m_pCamCtrl[dispNum]->OpenDevice();
+	m_strErr.Format(_T("!!!!!!!!!!!!!!!!!!!!! DEBUG %d Cam status : %d !!!!!!!!!!!!!!!!!\n"),dispNum, m_statusCode);
+	OutputDebugString(m_strErr);
+	if (m_statusCode != CAMERA_OPEN_SUCCESS)
 	{
-		m_strErr.Format(_T("카메라 Open 실패!"));
-		AfxMessageBox(m_strErr);
-		delete m_pCamCtrl1;
-		return;
+		delete m_pCamCtrl[dispNum];
+		return FALSE;
 	}
-	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+	return TRUE;
+}
+
+
+void CSmall_StudioDlg::OnBnClickedCam1open()
+{
+	GetDlgItem(IDC_CAM1OPEN)->EnableWindow(FALSE);
+	if (!m_IsOpen[0])
+	{
+		if (camOpenSeq(0))
+		{
+			m_IsOpen[0] = TRUE;
+			GetDlgItem(IDC_CAM1OPEN)->SetWindowTextW(_T("Camera 1 Open"));
+		}
+		else
+		{
+			m_strErr.Format(_T("카메라 Open 실패!"));
+			AfxMessageBox(m_strErr);
+		}
+	}
+	else
+	{
+		delete m_pCamCtrl[0];
+		GetDlgItem(IDC_CAM1OPEN)->SetWindowTextW(_T("Camera 1 Closed"));
+	}
+	GetDlgItem(IDC_CAM1OPEN)->EnableWindow(TRUE);
 }
 
 
 void CSmall_StudioDlg::OnBnClickedCam2open()
 {
-	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+	GetDlgItem(IDC_CAM2OPEN)->EnableWindow(FALSE);
+	if (!m_IsOpen[0])
+	{
+		if (camOpenSeq(0))
+		{
+			m_IsOpen[0] = TRUE;
+			GetDlgItem(IDC_CAM2OPEN)->SetWindowTextW(_T("Camera 2 Open"));
+		}
+		else
+		{
+			m_strErr.Format(_T("카메라 Open 실패!"));
+			AfxMessageBox(m_strErr);
+		}
+	}
+	else
+	{
+		delete m_pCamCtrl[0];
+		GetDlgItem(IDC_CAM2OPEN)->SetWindowTextW(_T("Camera 2 Closed"));
+	}
+	GetDlgItem(IDC_CAM2OPEN)->EnableWindow(TRUE);
 }
 
 
