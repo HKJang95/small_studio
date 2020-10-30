@@ -11,7 +11,9 @@ public:
 	~CCrevisCtrl();
 	INT32 OpenDevice();
 	INT32 CloseDevice();
-	
+	BOOL SetDeviceIP(CString IPCStr);
+	DOUBLE GetDeviceExposure();
+	BOOL SetDeviceExposure(CString IPCStr);
 
 public:
 	BYTE*			m_pImage;			// 이미지 버퍼

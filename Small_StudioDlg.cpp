@@ -54,6 +54,7 @@ CSmall_StudioDlg::CSmall_StudioDlg(CWnd* pParent /*=NULL*/)
 	, m_IsSystemInit(false)
 	, m_statusCode(-99999)
 	, m_strErr(_T(""))
+	, m_optionPath(_T(""))
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 
@@ -89,6 +90,9 @@ END_MESSAGE_MAP()
 BOOL CSmall_StudioDlg::OnInitDialog()
 {
 	CDialogEx::OnInitDialog();
+	
+	m_optionPath.Format(_T("%s\\option.ini"), GetExePath());
+	GetOptionValue();
 
 	if (ST_InitSystem() != MCAM_ERR_SUCCESS)
 	{
@@ -118,6 +122,7 @@ BOOL CSmall_StudioDlg::OnInitDialog()
 			pSysMenu->AppendMenu(MF_STRING, IDM_ABOUTBOX, strAboutMenu);
 		}
 	}
+
 
 	// 이 대화 상자의 아이콘을 설정합니다.  응용 프로그램의 주 창이 대화 상자가 아닐 경우에는
 	//  프레임워크가 이 작업을 자동으로 수행합니다.
@@ -196,7 +201,6 @@ BOOL CSmall_StudioDlg::camOpenSeq(int dispNum)
 		AfxMessageBox(_T("System Init이 되지 않았습니다. 카메라를 사용할 수 없습니다."));
 		return FALSE;
 	}
-
 	m_pCamCtrl[dispNum] = new CCrevisCtrl(m_CamIP[dispNum]);
 	m_statusCode = m_pCamCtrl[dispNum]->OpenDevice();
 	m_strErr.Format(_T("!!!!!!!!!!!!!!!!!!!!! DEBUG %d Cam status : %d !!!!!!!!!!!!!!!!!\n"),dispNum, m_statusCode);
@@ -204,6 +208,8 @@ BOOL CSmall_StudioDlg::camOpenSeq(int dispNum)
 	if (m_statusCode != CAMERA_OPEN_SUCCESS)
 	{
 		delete m_pCamCtrl[dispNum];
+		m_CamIP[dispNum] = _T("");
+		WritePrivateProfileString(_T("CAMERA_1"), _T("IP"), NULL, _T("Option.ini"));
 		return FALSE;
 	}
 	return TRUE;
@@ -238,11 +244,11 @@ void CSmall_StudioDlg::OnBnClickedCam1open()
 void CSmall_StudioDlg::OnBnClickedCam2open()
 {
 	GetDlgItem(IDC_CAM2OPEN)->EnableWindow(FALSE);
-	if (!m_IsOpen[0])
+	if (!m_IsOpen[1])
 	{
-		if (camOpenSeq(0))
+		if (camOpenSeq(1))
 		{
-			m_IsOpen[0] = TRUE;
+			m_IsOpen[1] = TRUE;
 			GetDlgItem(IDC_CAM2OPEN)->SetWindowTextW(_T("Camera 2 Open"));
 		}
 		else
@@ -253,7 +259,7 @@ void CSmall_StudioDlg::OnBnClickedCam2open()
 	}
 	else
 	{
-		delete m_pCamCtrl[0];
+		delete m_pCamCtrl[1];
 		GetDlgItem(IDC_CAM2OPEN)->SetWindowTextW(_T("Camera 2 Closed"));
 	}
 	GetDlgItem(IDC_CAM2OPEN)->EnableWindow(TRUE);
@@ -262,6 +268,26 @@ void CSmall_StudioDlg::OnBnClickedCam2open()
 
 void CSmall_StudioDlg::OnBnClickedOptionbtn()
 {
+	COptionDlg optiondlg;
+	GetOptionValue();
+	
+	for (int i = 0; i < MAXCAM; i++)
+	{
+		optiondlg.m_CamIP[i] = m_CamIP[i];
+		optiondlg.m_CamExposure[i] = m_CamExposure[i];
+	}
+	optiondlg.m_optionPath = m_optionPath;
+	if (IDOK == optiondlg.DoModal())
+	{
+		for (int i = 0; i < MAXCAM; i++)
+		{
+			m_CamIP[i] = optiondlg.m_CamIP[i];
+			m_CamExposure[i] = optiondlg.m_CamExposure[i];
+			// !!!!!!!!!!!!!!!!!!!! EXPOSURE TIME SET 꾸현하끼끼끼 !!!!!!!!!!!!!!!!!!!!!!
+		}
+	}
+
+	
 	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
 }
 
@@ -281,5 +307,36 @@ void CSmall_StudioDlg::OnBnClickedCam1play()
 void CSmall_StudioDlg::OnBnClickedCam2play()
 {
 	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+}
+
+// Option값 설정을 위한 현재 실행파일 경로 반환 20201030 장한결
+CString CSmall_StudioDlg::GetExePath()
+{
+	static TCHAR pBuf[256] = { 0, };
+	memset(pBuf, NULL, sizeof(pBuf));
+	GetModuleFileName(NULL, pBuf, sizeof(pBuf));
+	CString strFilePath;
+	strFilePath.Format(_T("%s"), pBuf);
+	strFilePath = strFilePath.Left(strFilePath.ReverseFind(_T('\\')));
+	return strFilePath;
+}
+
+// option.ini 파일에서 값 읽어오는 함수 20201030 장한결
+BOOL CSmall_StudioDlg::GetOptionValue()
+{
+	LPWSTR cBuf;
+	cBuf = new WCHAR[256];
+	for (int i = 0; i < MAXCAM; i++)
+	{
+		CString camnum;
+		camnum.Format(_T("CAMERA%d"), i + 1);
+		GetPrivateProfileStringW(camnum, _T("IP"), _T(""), cBuf, 256, m_optionPath);
+		m_CamIP[i] = cBuf;
+		GetPrivateProfileStringW(camnum, _T("Exposure"), _T(""), cBuf, 256, m_optionPath);
+		m_CamExposure[i] = cBuf;
+	}
+	delete cBuf;
+
+	return TRUE;
 }
 
