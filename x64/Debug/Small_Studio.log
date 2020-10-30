@@ -1,2 +1,5 @@
 ﻿  Small_StudioDlg.cpp
+  CrevisCtrl.cpp
+CrevisCtrl.cpp(66): warning C4018: '<' : signed 또는 unsigned가 일치하지 않습니다.
+  코드를 생성하고 있습니다...
   Small_Studio.vcxproj -> E:\필요문서\5. 과제\6. big assignment\Small_Studio\x64\Debug\Small_Studio.exe

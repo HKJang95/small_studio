@@ -241,7 +241,6 @@ void CSmall_StudioDlg::OnBnClickedCam1open()
 	}
 	else
 	{
-		
 		delete m_pCamCtrl[0];
 		m_IsOpen[0] = FALSE;
 		GetDlgItem(IDC_CAM1OPEN)->SetWindowTextW(_T("Camera 1 Closed"));
@@ -337,6 +336,7 @@ CString CSmall_StudioDlg::GetExePath()
 	return strFilePath;
 }
 
+// option 버튼 누를 때 동작
 // option.ini 파일에서 모든 값 읽어오는 함수 20201030 장한결
 BOOL CSmall_StudioDlg::GetOptionValue()
 {
@@ -348,14 +348,23 @@ BOOL CSmall_StudioDlg::GetOptionValue()
 		camnum.Format(_T("CAMERA%d"), i + 1);
 		GetPrivateProfileStringW(camnum, _T("IP"), _T(""), cBuf, 256, m_optionPath);
 		m_CamIP[i] = cBuf;
-		GetPrivateProfileStringW(camnum, _T("Exposure"), _T(""), cBuf, 256, m_optionPath);
-		m_CamExposure[i] = _ttof(cBuf);
+
+		if (m_IsOpen[i])
+		{
+			m_CamExposure[i] = m_pCamCtrl[i]->GetDeviceExposure();
+		}
+		else
+		{
+			GetPrivateProfileStringW(camnum, _T("Exposure"), _T(""), cBuf, 256, m_optionPath);
+			m_CamExposure[i] = _ttof(cBuf);
+		}
 	}
 	delete cBuf;
 
 	return TRUE;
 }
 
+// camera open 동작시 사용
 // option.ini 파일에서 디스플레이 번호에 따른 정보 얻어오는 함수 20201030 장한결
 // GetOptionValue() Override
 BOOL CSmall_StudioDlg::GetOptionValue(int dispNum)
