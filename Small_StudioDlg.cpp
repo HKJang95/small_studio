@@ -241,7 +241,9 @@ void CSmall_StudioDlg::OnBnClickedCam1open()
 	}
 	else
 	{
+		
 		delete m_pCamCtrl[0];
+		m_IsOpen[0] = FALSE;
 		GetDlgItem(IDC_CAM1OPEN)->SetWindowTextW(_T("Camera 1 Closed"));
 	}
 	GetDlgItem(IDC_CAM1OPEN)->EnableWindow(TRUE);
@@ -268,6 +270,7 @@ void CSmall_StudioDlg::OnBnClickedCam2open()
 	else
 	{
 		delete m_pCamCtrl[1];
+		m_IsOpen[1] = FALSE;
 		GetDlgItem(IDC_CAM2OPEN)->SetWindowTextW(_T("Camera 2 Closed"));
 	}
 	GetDlgItem(IDC_CAM2OPEN)->EnableWindow(TRUE);
