@@ -134,7 +134,37 @@ INT32 CCrevisCtrl::CloseDevice()
 	}
 	return CAMERA_CLOSE_NOTOPEN;
 }
+// Exposure time을 구해주는 함수. 20201030 장한결
+DOUBLE CCrevisCtrl::GetDeviceExposure()
+{
+	DOUBLE exposetime = 0.0f;
 
+	if (m_IsDeviceOpen)
+	{
+		m_status = ST_GetFloatReg(m_hDevice, MCAM_EXPOSURE_TIME, &exposetime);
+		if (m_status != MCAM_ERR_SUCCESS)
+		{
+			return -1.0f;
+		}
+	}
+	return exposetime;
+}
 
+BOOL CCrevisCtrl::SetDeviceExposure(DOUBLE ExposeTime)
+{
+	if (m_IsDeviceOpen)
+	{
+		m_status = ST_SetFloatReg(m_hDevice, MCAM_EXPOSURE_TIME, ExposeTime);
+		if (m_status != MCAM_ERR_SUCCESS)
+		{
+			return FALSE;
+		}
+	}
+	else
+	{
+		return FALSE;
+	}
+	return TRUE;
+}
 
 

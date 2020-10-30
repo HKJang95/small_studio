@@ -62,6 +62,7 @@ CSmall_StudioDlg::CSmall_StudioDlg(CWnd* pParent /*=NULL*/)
 	{
 		m_pCamCtrl[i] = NULL;
 		m_CamIP[i] = _T("");
+		m_CamExposure[i] = 0.0;
 		m_IsOpen[i] = FALSE;
 	}
 }
@@ -186,7 +187,13 @@ HCURSOR CSmall_StudioDlg::OnQueryDragIcon()
 void CSmall_StudioDlg::OnDestroy()
 {
 	CDialogEx::OnDestroy();
-	
+	for (int i = 0; i < MAXCAM; i++)
+	{
+		if (m_IsOpen[i])
+		{
+			delete m_pCamCtrl[i];
+		}
+	}
 
 	if (m_IsSystemInit)
 	{
@@ -209,16 +216,16 @@ BOOL CSmall_StudioDlg::camOpenSeq(int dispNum)
 	{
 		delete m_pCamCtrl[dispNum];
 		m_CamIP[dispNum] = _T("");
-		WritePrivateProfileString(_T("CAMERA_1"), _T("IP"), NULL, _T("Option.ini"));
 		return FALSE;
 	}
 	return TRUE;
 }
 
-
+// Cam 1,2 번 Open. option.ini 파일의 내용을 읽어서 open합니다. 20201030 장한결
 void CSmall_StudioDlg::OnBnClickedCam1open()
 {
 	GetDlgItem(IDC_CAM1OPEN)->EnableWindow(FALSE);
+	GetOptionValue(0);
 	if (!m_IsOpen[0])
 	{
 		if (camOpenSeq(0))
@@ -244,6 +251,7 @@ void CSmall_StudioDlg::OnBnClickedCam1open()
 void CSmall_StudioDlg::OnBnClickedCam2open()
 {
 	GetDlgItem(IDC_CAM2OPEN)->EnableWindow(FALSE);
+	GetOptionValue(1);
 	if (!m_IsOpen[1])
 	{
 		if (camOpenSeq(1))
@@ -274,20 +282,25 @@ void CSmall_StudioDlg::OnBnClickedOptionbtn()
 	for (int i = 0; i < MAXCAM; i++)
 	{
 		optiondlg.m_CamIP[i] = m_CamIP[i];
-		optiondlg.m_CamExposure[i] = m_CamExposure[i];
+		optiondlg.m_CamExposure[i].Format(_T("%lf"), m_CamExposure[i]);
 	}
 	optiondlg.m_optionPath = m_optionPath;
 	if (IDOK == optiondlg.DoModal())
 	{
+		// 옵션 setting 완료시. ini에 저장된 값 프로그램에도 반영.
 		for (int i = 0; i < MAXCAM; i++)
 		{
 			m_CamIP[i] = optiondlg.m_CamIP[i];
-			m_CamExposure[i] = optiondlg.m_CamExposure[i];
-			// !!!!!!!!!!!!!!!!!!!! EXPOSURE TIME SET 꾸현하끼끼끼 !!!!!!!!!!!!!!!!!!!!!!
+			m_CamExposure[i] = _ttof(optiondlg.m_CamExposure[i]);
+			if (m_pCamCtrl[i] != NULL)
+			{
+				if (m_IsOpen[i])
+				{
+					m_pCamCtrl[i]->SetDeviceExposure(m_CamExposure[i]);
+				}
+			}
 		}
 	}
-
-	
 	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
 }
 
@@ -321,7 +334,7 @@ CString CSmall_StudioDlg::GetExePath()
 	return strFilePath;
 }
 
-// option.ini 파일에서 값 읽어오는 함수 20201030 장한결
+// option.ini 파일에서 모든 값 읽어오는 함수 20201030 장한결
 BOOL CSmall_StudioDlg::GetOptionValue()
 {
 	LPWSTR cBuf;
@@ -333,8 +346,27 @@ BOOL CSmall_StudioDlg::GetOptionValue()
 		GetPrivateProfileStringW(camnum, _T("IP"), _T(""), cBuf, 256, m_optionPath);
 		m_CamIP[i] = cBuf;
 		GetPrivateProfileStringW(camnum, _T("Exposure"), _T(""), cBuf, 256, m_optionPath);
-		m_CamExposure[i] = cBuf;
+		m_CamExposure[i] = _ttof(cBuf);
 	}
+	delete cBuf;
+
+	return TRUE;
+}
+
+// option.ini 파일에서 디스플레이 번호에 따른 정보 얻어오는 함수 20201030 장한결
+// GetOptionValue() Override
+BOOL CSmall_StudioDlg::GetOptionValue(int dispNum)
+{
+	LPWSTR cBuf;
+	cBuf = new WCHAR[256];
+
+	CString camnum;
+	camnum.Format(_T("CAMERA%d"), dispNum + 1);
+	GetPrivateProfileStringW(camnum, _T("IP"), _T(""), cBuf, 256, m_optionPath);
+	m_CamIP[dispNum] = cBuf;
+	GetPrivateProfileStringW(camnum, _T("Exposure"), _T(""), cBuf, 256, m_optionPath);
+	m_CamExposure[dispNum] = _ttof(cBuf);
+	
 	delete cBuf;
 
 	return TRUE;
