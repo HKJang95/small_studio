@@ -46,6 +46,7 @@ private:
 	BOOL camOpenSeq(int dispNum);
 	CString GetExePath();
 	BOOL GetOptionValue();
+	BOOL GetOptionValue(int dispNum);
 
 public:
 	bool			m_IsSystemInit;		// Camera SDK Init 상태 점검입니다.
@@ -54,6 +55,6 @@ public:
 	INT32			m_statusCode;		// 프로그램 에러 코드를 저장하는 변수입니다.
 	CString			m_strErr;			// 출력할 에러 String입니다
 	CString			m_CamIP[MAXCAM];	// 사용자로부터 입력받을 IP 주소 String입니다.
-	CString			m_CamExposure[MAXCAM];
+	DOUBLE			m_CamExposure[MAXCAM];
 	CString			m_optionPath;
 };
