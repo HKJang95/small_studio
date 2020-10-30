@@ -36,6 +36,9 @@
     <ClInclude Include="CrevisCtrl.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
+    <ClInclude Include="OptionDlg.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Small_Studio.cpp">
@@ -50,6 +53,9 @@
     <ClCompile Include="CrevisCtrl.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
+    <ClCompile Include="OptionDlg.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Small_Studio.rc">
@@ -60,7 +66,6 @@
     <None Include="res\Small_Studio.rc2">
       <Filter>리소스 파일</Filter>
     </None>
-    <None Include="ClassDiagram.cd" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="res\Small_Studio.ico">

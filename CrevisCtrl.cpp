@@ -98,6 +98,7 @@ INT32 CCrevisCtrl::OpenDevice()
 			m_status = ST_AcqStart(m_hDevice);
 			if (m_status != MCAM_ERR_SUCCESS)
 			{
+				m_IsAcq = FALSE;
 				return CAMERA_ACQ_FAIL;
 			}
 			else
@@ -133,6 +134,7 @@ INT32 CCrevisCtrl::CloseDevice()
 	}
 	return CAMERA_CLOSE_NOTOPEN;
 }
+
 
 
 
