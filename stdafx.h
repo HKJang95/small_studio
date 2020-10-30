@@ -2,14 +2,22 @@
 // stdafx.h : 자주 사용하지만 자주 변경되지는 않는
 // 표준 시스템 포함 파일 및 프로젝트 관련 포함 파일이 
 // 들어 있는 포함 파일입니다.
-enum ERRCODE 
+#define MAXCAM 2
+
+// 카메라 관련 에러코드 20201030 장한결
+enum CAMERA_ERRCODE 
 { 
 	CAMERA_OPEN_SUCCESS		= 0, 
-	SYSTEM_NOT_INIT			= -1000, 
+	CAMSYS_NOT_INIT			= -1000, 
 	CAMERA_OPEN_ERROR		= -1001, 
 	NO_CAMERA_DETECTED		= -1002, 
 	CAMERA_CLOSE_SUCCESS	= 0,
-	CAMERA_CLOSE_FAIL		= -1003
+	CAMERA_CLOSE_FAIL		= -1003,
+	CAMERA_CLOSE_NOTOPEN	= -1004,
+	CAMERA_IP_NOTFOUND		= -1,
+	CAMERA_MODCH_FAIL		= -1005,
+	CAMERA_INFOGET_FAIL		= -1006,
+	CAMERA_ACQ_FAIL			= -1007
 };
 #pragma once
 
