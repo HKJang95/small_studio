@@ -324,7 +324,6 @@ void CSmall_StudioDlg::OnBnClickedOptionbtn()
 						if (m_pCamCtrl[i]->SetTrigger(m_CamTrig[i]))
 						{
 							Sleep(50);
-						
 						}
 					}
 				}

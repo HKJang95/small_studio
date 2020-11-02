@@ -51,7 +51,7 @@ BOOL COptionDlg::OnInitDialog()
 	m_Cam1ModeCombo.InsertString(CAMERA_TRIG_CONTINUOUS, cstr);
 	m_Cam2ModeCombo.InsertString(CAMERA_TRIG_CONTINUOUS, cstr);
 
-	m_Cam1ModeCombo.SetCurSel(_ttoi(m_CamTrig[0]));
+	m_Cam1ModeCombo.SetCurSel(_ttoi(m_CamTrig[0])); 
 	m_Cam2ModeCombo.SetCurSel(_ttoi(m_CamTrig[1]));
 
 	// TODO:  여기에 추가 초기화 작업을 추가합니다.
