@@ -234,11 +234,13 @@ BOOL CCrevisCtrl::SetDeviceExposure(DOUBLE ExposeTime)
 {
 	if (m_IsDeviceOpen)
 	{
+		ST_AcqStop(m_hDevice);
 		m_status = ST_SetFloatReg(m_hDevice, MCAM_EXPOSURE_TIME, ExposeTime);
 		if (m_status != MCAM_ERR_SUCCESS)
 		{
 			return FALSE;
 		}
+		ST_AcqStart(m_hDevice);
 	}
 	else
 	{
