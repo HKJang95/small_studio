@@ -19,13 +19,8 @@ CCrevisCtrl::CCrevisCtrl(CString InputIP)
 // 소멸자 생성 시 카메라 Close를 해주지 않았다면 자동으로 Close를 진행합니다. 20201029 장한결
 CCrevisCtrl::~CCrevisCtrl()
 {
-	bool isopen = false;
-	ST_IsOpenDevice(m_hDevice, &isopen);
 	ST_AcqStop(m_hDevice);
-	if (isopen)
-	{
-		CloseDevice();
-	}
+	CloseDevice();
 }
 
 // 생성자에서 지정해 준 IP 주소로 카메라를 Open합니다. 20201029 장한결
