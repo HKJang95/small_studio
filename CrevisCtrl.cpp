@@ -203,11 +203,11 @@ INT32 CCrevisCtrl::CloseDevice()
 		}
 
 		m_status = ST_CloseDevice(m_hDevice);
-		m_IsDeviceOpen = FALSE;
 		if (m_status != MCAM_ERR_SUCCESS)
 		{
 			return CAMERA_CLOSE_FAIL;
 		}
+		m_IsDeviceOpen = FALSE;
 		return CAMERA_CLOSE_SUCCESS;
 	}
 	return CAMERA_CLOSE_NOTOPEN;
