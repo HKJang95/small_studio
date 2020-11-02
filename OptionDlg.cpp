@@ -23,6 +23,8 @@ COptionDlg::~COptionDlg()
 void COptionDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialogEx::DoDataExchange(pDX);
+	DDX_Control(pDX, IDC_CAM1MODE, m_Cam1ModeCombo);
+	DDX_Control(pDX, IDC_CAM2MODE, m_Cam2ModeCombo);
 }
 
 
@@ -38,6 +40,19 @@ END_MESSAGE_MAP()
 BOOL COptionDlg::OnInitDialog()
 {
 	CDialogEx::OnInitDialog();
+
+	CString cstr;
+	
+	cstr.Format(_T("Software Trigger"));
+	m_Cam1ModeCombo.InsertString(CAMERA_TRIG_SW, cstr);
+	m_Cam2ModeCombo.InsertString(CAMERA_TRIG_SW, cstr);
+
+	cstr.Format(_T("Continuous"));
+	m_Cam1ModeCombo.InsertString(CAMERA_TRIG_CONTINUOUS, cstr);
+	m_Cam2ModeCombo.InsertString(CAMERA_TRIG_CONTINUOUS, cstr);
+
+	m_Cam1ModeCombo.SetCurSel(_ttoi(m_CamTrig[0]));
+	m_Cam2ModeCombo.SetCurSel(_ttoi(m_CamTrig[1]));
 
 	// TODO:  여기에 추가 초기화 작업을 추가합니다.
 	GetDlgItem(IDC_CAM1IPCONTROL)->SetWindowTextW(m_CamIP[0]);
@@ -55,7 +70,15 @@ void COptionDlg::OnBnClickedOk()
 	GetDlgItemText(IDC_CAM2IPCONTROL, m_CamIP[1]);
 	GetDlgItemText(IDC_CAM1EXPEDIT, m_CamExposure[0]);
 	GetDlgItemText(IDC_CAM2EXPEDIT, m_CamExposure[1]);
+	
+	CString grabmode;
 
+	grabmode.Format(_T("%d"), m_Cam1ModeCombo.GetCurSel());
+	m_CamTrig[0] = grabmode;
+	
+	grabmode.Format(_T("%d"), m_Cam2ModeCombo.GetCurSel());
+	m_CamTrig[1] = grabmode;
+	
 	for (int i = 0; i < MAXCAM; i++)
 	{
 		if (_ttof(m_CamExposure[i]) > 65555.0f || _ttof(m_CamExposure[i]) < 0.0f)
@@ -68,6 +91,7 @@ void COptionDlg::OnBnClickedOk()
 		camnum.Format(_T("CAMERA%d"), i + 1);
 		WritePrivateProfileString(camnum, _T("IP"), m_CamIP[i], m_optionPath);
 		WritePrivateProfileString(camnum, _T("Exposure"), m_CamExposure[i], m_optionPath);
+		WritePrivateProfileString(camnum, _T("GRAB_MODE"), m_CamTrig[i], m_optionPath);
 	}
 
 	CDialogEx::OnOK();

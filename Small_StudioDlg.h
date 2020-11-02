@@ -52,6 +52,7 @@ private:
 public:
 	bool			m_IsSystemInit;		// Camera SDK Init 상태 점검입니다.
 	BOOL			m_IsOpen[MAXCAM];
+	BOOL			m_IsPlay[MAXCAM];
 	CCrevisCtrl*	m_pCamCtrl[MAXCAM]; // 카메라용 Class 객체 포인터입니다. 
 	INT32			m_statusCode;		// 프로그램 에러 코드를 저장하는 변수입니다.
 	CString			m_strErr;			// 출력할 에러 String입니다
@@ -59,4 +60,5 @@ public:
 	DOUBLE			m_CamExposure[MAXCAM]; // 사용자로부터 입력받을 Exposure time입니다.
 	CString			m_optionPath;
 	INT32			m_CamTrig[MAXCAM]; // 사용자로부터 입력받을 카메라의 Trigger mode
+
 };

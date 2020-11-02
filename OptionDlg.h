@@ -2,6 +2,7 @@
 #include "stdafx.h"
 #include "Small_StudioDlg.h"
 #include "Small_Studio.h"
+#include "afxwin.h"
 
 // COptionDlg 대화 상자입니다.
 
@@ -33,6 +34,10 @@ public:
 public:
 	CString			m_CamIP[MAXCAM];
 	CString			m_CamExposure[MAXCAM];
+	CString			m_CamTrig[MAXCAM];
 	CString			m_optionPath;
 	afx_msg void OnBnClickedSerialsetbtn();
+	// 카메라 Grab Mode 설정용 콤보박스 20201102 장한결
+	CComboBox m_Cam1ModeCombo;
+	CComboBox m_Cam2ModeCombo;
 };
