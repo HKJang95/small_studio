@@ -312,17 +312,21 @@ void CSmall_StudioDlg::OnBnClickedOptionbtn()
 			m_CamIP[i] = optiondlg.m_CamIP[i];
 			m_CamExposure[i] = _ttof(optiondlg.m_CamExposure[i]);
 			m_CamTrig[i] = _ttoi(optiondlg.m_CamTrig[i]);
+			CString strErr;
+			strErr.Format(_T("===================== %d ==================\n"), m_CamTrig[i]);
 			if (m_pCamCtrl[i] != NULL)
 			{
 				if (m_IsOpen[i])
 				{
+					Sleep(50);
 					m_pCamCtrl[i]->SetDeviceExposure(m_CamExposure[i]);
-				}
-				if (!m_IsPlay[i])
-				{
-					if (m_pCamCtrl[i]->SetTrigger(m_CamTrig[i]))
+					if (!m_IsPlay[i])
 					{
-						OutputDebugString(_T("===============Trigger Done!====================\n"));
+						if (m_pCamCtrl[i]->SetTrigger(m_CamTrig[i]))
+						{
+							Sleep(50);
+							OutputDebugString(_T("===============Trigger Done!====================\n"));
+						}
 					}
 				}
 			}
@@ -381,12 +385,10 @@ BOOL CSmall_StudioDlg::GetOptionValue(int mode)
 			// Camera Open일시 Device에서 직접 Exposure time과 Trigger Mode를 가지고 옵니다.
 			if (m_IsOpen[i])
 			{
+				Sleep(50);
 				m_CamExposure[i] = m_pCamCtrl[i]->GetDeviceExposure();
 				INT32 trigmode = m_pCamCtrl[i]->GetTrigger();
 				// 일단 Trigger mode Device에서 받지 못할 시 SW Mode로 인식
-
-
-
 				if (trigmode < 0)
 				{
 					trigmode = CAMERA_TRIG_SW;
