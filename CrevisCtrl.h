@@ -13,7 +13,8 @@ public:
 	INT32 CloseDevice();
 	DOUBLE GetDeviceExposure();
 	BOOL SetDeviceExposure(DOUBLE ExposeTime);
-	BOOL SetGrabMode();
+	BOOL SetTrigger(INT32 mode);
+	INT32 GetTrigger();
 
 public:
 	BYTE*			m_pImage;			// 이미지 버퍼
@@ -26,6 +27,7 @@ public:
 	INT32			m_camWidth;			// Image 폭
 	INT32			m_camHeight;		// Image 높이
 	UINT32			m_camNum;			// Device 번호
+	INT32			m_bufferSize;		// 영상 버퍼 사이즈 (width * height)
 										// 20201030 장한결
 };
 

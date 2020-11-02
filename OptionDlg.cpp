@@ -58,6 +58,12 @@ void COptionDlg::OnBnClickedOk()
 
 	for (int i = 0; i < MAXCAM; i++)
 	{
+		if (_ttof(m_CamExposure[i]) > 65555.0f || _ttof(m_CamExposure[i]) < 0.0f)
+		{
+			AfxMessageBox(_T("Exposure Time은 0~65535 사이의 값을 입력 바랍니다."));
+			return;
+		}
+
 		CString camnum;
 		camnum.Format(_T("CAMERA%d"), i + 1);
 		WritePrivateProfileString(camnum, _T("IP"), m_CamIP[i], m_optionPath);
@@ -76,6 +82,5 @@ void COptionDlg::OnBnClickedCancel()
 void COptionDlg::OnDestroy()
 {
 	CDialogEx::OnDestroy();
-
 	// TODO: 여기에 메시지 처리기 코드를 추가합니다.
 }

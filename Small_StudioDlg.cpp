@@ -93,7 +93,7 @@ BOOL CSmall_StudioDlg::OnInitDialog()
 	CDialogEx::OnInitDialog();
 	
 	m_optionPath.Format(_T("%s\\option.ini"), GetExePath());
-	GetOptionValue();
+	GetOptionValue(OPT_READ_ALL);
 
 	if (ST_InitSystem() != MCAM_ERR_SUCCESS)
 	{
@@ -218,6 +218,17 @@ BOOL CSmall_StudioDlg::camOpenSeq(int dispNum)
 		m_CamIP[dispNum] = _T("");
 		return FALSE;
 	}
+
+	if (!m_pCamCtrl[dispNum]->SetDeviceExposure(m_CamExposure[dispNum]))
+	{
+		return FALSE;
+	}
+	
+	if (!m_pCamCtrl[dispNum]->SetTrigger(m_CamTrig[dispNum]))
+	{
+		return FALSE;
+	}
+
 	return TRUE;
 }
 
@@ -225,7 +236,8 @@ BOOL CSmall_StudioDlg::camOpenSeq(int dispNum)
 void CSmall_StudioDlg::OnBnClickedCam1open()
 {
 	GetDlgItem(IDC_CAM1OPEN)->EnableWindow(FALSE);
-	GetOptionValue(0);
+	// Option.ini 파일을 읽어 Open시 필요한 정보를 읽습니다.
+	GetOptionValue(OPT_READ_OPEN, 0);
 	if (!m_IsOpen[0])
 	{
 		if (camOpenSeq(0))
@@ -252,7 +264,7 @@ void CSmall_StudioDlg::OnBnClickedCam1open()
 void CSmall_StudioDlg::OnBnClickedCam2open()
 {
 	GetDlgItem(IDC_CAM2OPEN)->EnableWindow(FALSE);
-	GetOptionValue(1);
+	GetOptionValue(OPT_READ_OPEN, 1);
 	if (!m_IsOpen[1])
 	{
 		if (camOpenSeq(1))
@@ -279,7 +291,7 @@ void CSmall_StudioDlg::OnBnClickedCam2open()
 void CSmall_StudioDlg::OnBnClickedOptionbtn()
 {
 	COptionDlg optiondlg;
-	GetOptionValue();
+	GetOptionValue(OPT_READ_ALL);
 	
 	for (int i = 0; i < MAXCAM; i++)
 	{
@@ -336,30 +348,52 @@ CString CSmall_StudioDlg::GetExePath()
 	return strFilePath;
 }
 
-// option 버튼 누를 때 동작
+// option 버튼 누를 때와 APP 실행 시 동작
 // option.ini 파일에서 모든 값 읽어오는 함수 20201030 장한결
-BOOL CSmall_StudioDlg::GetOptionValue()
+BOOL CSmall_StudioDlg::GetOptionValue(int mode)
 {
-	LPWSTR cBuf;
-	cBuf = new WCHAR[256];
-	for (int i = 0; i < MAXCAM; i++)
+	if (mode == OPT_READ_ALL)
 	{
-		CString camnum;
-		camnum.Format(_T("CAMERA%d"), i + 1);
-		GetPrivateProfileStringW(camnum, _T("IP"), _T(""), cBuf, 256, m_optionPath);
-		m_CamIP[i] = cBuf;
 
-		if (m_IsOpen[i])
+		LPWSTR cBuf;
+		cBuf = new WCHAR[256];
+		for (int i = 0; i < MAXCAM; i++)
 		{
-			m_CamExposure[i] = m_pCamCtrl[i]->GetDeviceExposure();
+			CString camnum;
+			camnum.Format(_T("CAMERA%d"), i + 1);
+			// IP주소 Read
+			GetPrivateProfileStringW(camnum, _T("IP"), _T(""), cBuf, 256, m_optionPath);
+			m_CamIP[i] = cBuf;
+
+			// Camera Open일시 Device에서 직접 Exposure time과 Trigger Mode를 가지고 옵니다.
+			if (m_IsOpen[i])
+			{
+				m_CamExposure[i] = m_pCamCtrl[i]->GetDeviceExposure();
+				INT32 trigmode = m_pCamCtrl[i]->GetTrigger();
+				// 일단 Trigger mode Device에서 받지 못할 시 SW Mode로 인식
+				if (trigmode < 0)
+				{
+					trigmode = CAMERA_TRIG_SW;
+				}
+
+				m_CamTrig[i] = trigmode;
+			}
+			else
+			{
+				GetPrivateProfileStringW(camnum, _T("Exposure"), _T("50000"), cBuf, 256, m_optionPath);
+				m_CamExposure[i] = _ttof(cBuf);
+				// Grab mode read
+
+				GetPrivateProfileStringW(camnum, _T("GRAB_MODE"), _T("1000"), cBuf, 256, m_optionPath);
+				m_CamTrig[i] = _ttoi(cBuf);
+			}
 		}
-		else
-		{
-			GetPrivateProfileStringW(camnum, _T("Exposure"), _T(""), cBuf, 256, m_optionPath);
-			m_CamExposure[i] = _ttof(cBuf);
-		}
+		delete cBuf;
 	}
-	delete cBuf;
+	else
+	{
+		return FALSE;
+	}
 
 	return TRUE;
 }
@@ -367,20 +401,34 @@ BOOL CSmall_StudioDlg::GetOptionValue()
 // camera open 동작시 사용
 // option.ini 파일에서 디스플레이 번호에 따른 정보 얻어오는 함수 20201030 장한결
 // GetOptionValue() Override
-BOOL CSmall_StudioDlg::GetOptionValue(int dispNum)
+BOOL CSmall_StudioDlg::GetOptionValue(int mode, int dispNum)
 {
 	LPWSTR cBuf;
 	cBuf = new WCHAR[256];
-
 	CString camnum;
 	camnum.Format(_T("CAMERA%d"), dispNum + 1);
-	GetPrivateProfileStringW(camnum, _T("IP"), _T(""), cBuf, 256, m_optionPath);
-	m_CamIP[dispNum] = cBuf;
-	GetPrivateProfileStringW(camnum, _T("Exposure"), _T(""), cBuf, 256, m_optionPath);
-	m_CamExposure[dispNum] = _ttof(cBuf);
-	
-	delete cBuf;
 
+	if (mode == OPT_READ_OPEN)
+	{
+		GetPrivateProfileStringW(camnum, _T("IP"), _T(""), cBuf, 256, m_optionPath);
+		m_CamIP[dispNum] = cBuf;
+		GetPrivateProfileStringW(camnum, _T("Exposure"), _T("50000"), cBuf, 256, m_optionPath);
+		m_CamExposure[dispNum] = _ttof(cBuf);
+		GetPrivateProfileStringW(camnum, _T("GRAB_MODE"), _T("1000"), cBuf, 256, m_optionPath);
+		m_CamTrig[dispNum] = _ttoi(cBuf);
+	}
+	else if (mode == OPT_READ_PLAY)
+	{
+		GetPrivateProfileStringW(camnum, _T("Exposure"), _T("50000"), cBuf, 256, m_optionPath);
+		m_CamExposure[dispNum] = _ttof(cBuf);
+		GetPrivateProfileStringW(camnum, _T("GRAB_MODE"), _T("1000"), cBuf, 256, m_optionPath);
+		m_CamTrig[dispNum] = _ttoi(cBuf);
+	}
+	else
+	{
+		return FALSE;
+	}
+	delete cBuf;
 	return TRUE;
 }
 
