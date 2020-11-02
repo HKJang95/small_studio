@@ -226,12 +226,7 @@ BOOL CSmall_StudioDlg::camOpenSeq(int dispNum)
 		m_IsOpen[dispNum] = FALSE;
 		return FALSE;
 	}
-	
-	if (!m_pCamCtrl[dispNum]->SetTrigger(m_CamTrig[dispNum]))
-	{
-		m_IsOpen[dispNum] = FALSE;
-		return FALSE;
-	}
+
 	m_IsOpen[dispNum] = TRUE;
 	return TRUE;
 }
@@ -317,15 +312,7 @@ void CSmall_StudioDlg::OnBnClickedOptionbtn()
 			{
 				if (m_IsOpen[i])
 				{
-					Sleep(50);
 					m_pCamCtrl[i]->SetDeviceExposure(m_CamExposure[i]);
-					if (!m_IsPlay[i])
-					{
-						if (m_pCamCtrl[i]->SetTrigger(m_CamTrig[i]))
-						{
-							Sleep(50);
-						}
-					}
 				}
 			}
 		}
@@ -385,27 +372,17 @@ BOOL CSmall_StudioDlg::GetOptionValue(int mode)
 			{
 				Sleep(50);
 				m_CamExposure[i] = m_pCamCtrl[i]->GetDeviceExposure();
-				INT32 trigmode = m_pCamCtrl[i]->GetTrigger();
-				CString str;
-				str.Format(_T("==================%d : %d==============\n"), i, trigmode);
-				// 일단 Trigger mode Device에서 받지 못할 시 SW Mode로 인식
-				if (trigmode < 0)
-				{
-					trigmode = CAMERA_TRIG_SW;
-				}
-
-				m_CamTrig[i] = trigmode;
 			}
 			else
 			{
 				GetPrivateProfileStringW(camnum, _T("Exposure"), _T("50000"), cBuf, 256, m_optionPath);
 				m_CamExposure[i] = _ttof(cBuf);
-				// Grab mode read
-				CString str;
-				str.Format(_T("%d"), CAMERA_TRIG_SW);
-				GetPrivateProfileStringW(camnum, _T("GRAB_MODE"),str, cBuf, 256, m_optionPath);
-				m_CamTrig[i] = _ttoi(cBuf);
 			}
+			// Grab mode read
+			CString str;
+			str.Format(_T("%d"), CAMERA_TRIG_SW);
+			GetPrivateProfileStringW(camnum, _T("GRAB_MODE"), str, cBuf, 256, m_optionPath);
+			m_CamTrig[i] = _ttoi(cBuf);
 		}
 		delete cBuf;
 	}
