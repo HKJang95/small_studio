@@ -17,6 +17,7 @@ public:
 	INT32 GetTrigger();
 
 public:
+	CRITICAL_SECTION mSc;
 	BYTE*			m_pImage;			// 이미지 버퍼
 	BOOL			m_IsDeviceOpen;		// Device Open 상태 체크
 	BOOL			m_IsAcq;			// Device Acquisition on 체크
