@@ -216,19 +216,22 @@ BOOL CSmall_StudioDlg::camOpenSeq(int dispNum)
 	{
 		delete m_pCamCtrl[dispNum];
 		m_CamIP[dispNum] = _T("");
+		m_IsOpen[dispNum] = FALSE;
 		return FALSE;
 	}
 
 	if (!m_pCamCtrl[dispNum]->SetDeviceExposure(m_CamExposure[dispNum]))
 	{
+		m_IsOpen[dispNum] = FALSE;
 		return FALSE;
 	}
 	
 	if (!m_pCamCtrl[dispNum]->SetTrigger(m_CamTrig[dispNum]))
 	{
+		m_IsOpen[dispNum] = FALSE;
 		return FALSE;
 	}
-
+	m_IsOpen[dispNum] = TRUE;
 	return TRUE;
 }
 
@@ -242,7 +245,6 @@ void CSmall_StudioDlg::OnBnClickedCam1open()
 	{
 		if (camOpenSeq(0))
 		{
-			m_IsOpen[0] = TRUE;
 			GetDlgItem(IDC_CAM1OPEN)->SetWindowTextW(_T("Camera 1 Open"));
 		}
 		else
@@ -254,7 +256,6 @@ void CSmall_StudioDlg::OnBnClickedCam1open()
 	else
 	{
 		delete m_pCamCtrl[0];
-		m_IsOpen[0] = FALSE;
 		GetDlgItem(IDC_CAM1OPEN)->SetWindowTextW(_T("Camera 1 Closed"));
 	}
 	GetDlgItem(IDC_CAM1OPEN)->EnableWindow(TRUE);
@@ -269,7 +270,6 @@ void CSmall_StudioDlg::OnBnClickedCam2open()
 	{
 		if (camOpenSeq(1))
 		{
-			m_IsOpen[1] = TRUE;
 			GetDlgItem(IDC_CAM2OPEN)->SetWindowTextW(_T("Camera 2 Open"));
 		}
 		else
@@ -281,7 +281,6 @@ void CSmall_StudioDlg::OnBnClickedCam2open()
 	else
 	{
 		delete m_pCamCtrl[1];
-		m_IsOpen[1] = FALSE;
 		GetDlgItem(IDC_CAM2OPEN)->SetWindowTextW(_T("Camera 2 Closed"));
 	}
 	GetDlgItem(IDC_CAM2OPEN)->EnableWindow(TRUE);
