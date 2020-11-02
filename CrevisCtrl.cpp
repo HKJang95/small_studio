@@ -95,8 +95,8 @@ INT32 CCrevisCtrl::OpenDevice()
 				return CAMERA_INFOGET_FAIL;
 			}
 
+			SetTrigger();
 			
-
 			m_status = ST_AcqStart(m_hDevice);
 			if (m_status != MCAM_ERR_SUCCESS)
 			{
@@ -107,6 +107,7 @@ INT32 CCrevisCtrl::OpenDevice()
 			{
 				m_IsAcq = TRUE;
 			}
+			
 			m_bufferSize = m_camWidth * m_camHeight;
 			m_pImage = new BYTE[m_bufferSize];
 			::ZeroMemory(m_pImage, m_bufferSize);
@@ -119,43 +120,24 @@ INT32 CCrevisCtrl::OpenDevice()
 	return CAMERA_IP_NOTFOUND;
 }
 
-// Trigger mode setting 입니다.
-// Software Trigger mode와 Continuous mode가 있습니다. 20201102 장한결
-BOOL CCrevisCtrl::SetTrigger(INT32 mode)
+// Trigger mode setting 입니다. 20201102 장한결
+BOOL CCrevisCtrl::SetTrigger()
 {
 	// SW Trigger set
 	// Trigger mode on 후 SW Trigger로 set 합니다. 20201102 장한결
 	if (m_IsDeviceOpen)
 	{
-		if (mode == CAMERA_TRIG_SW)
-		{
-			m_status = ST_SetEnumReg(m_hDevice, MCAM_TRIGGER_MODE, TRIGGER_MODE_ON);
-			if (m_status != MCAM_ERR_SUCCESS)
-			{
-				return FALSE;
-			}
-			m_status = ST_SetEnumReg(m_hDevice, MCAM_TRIGGER_SOURCE, TRIGGER_SOURCE_SOFTWARE);
-			if (m_status != MCAM_ERR_SUCCESS)
-			{
-				return FALSE;
-			}
-			return TRUE;
-		}
-		// Continuous mode set
-		// Trigger mode를 끕니다.
-		else if (mode == CAMERA_TRIG_CONTINUOUS)
-		{
-			m_status = ST_SetEnumReg(m_hDevice, MCAM_TRIGGER_MODE, TRIGGER_MODE_OFF);
-			if (m_status != MCAM_ERR_SUCCESS)
-			{
-				return FALSE;
-			}
-			return TRUE;
-		}
-		else
+		m_status = ST_SetEnumReg(m_hDevice, MCAM_TRIGGER_MODE, TRIGGER_MODE_ON);
+		if (m_status != MCAM_ERR_SUCCESS)
 		{
 			return FALSE;
 		}
+		m_status = ST_SetEnumReg(m_hDevice, MCAM_TRIGGER_SOURCE, TRIGGER_SOURCE_SOFTWARE);
+		if (m_status != MCAM_ERR_SUCCESS)
+		{
+			return FALSE;
+		}
+		return TRUE;
 	}
 	else
 	{
@@ -163,33 +145,6 @@ BOOL CCrevisCtrl::SetTrigger(INT32 mode)
 	}
 }
 
-// 에러일 시 음수 | 정상 일 시 Trigger mode 반환 20201102 장한결
-// Camera의 Trigger 상태 Check. Device의 상태만 받아올 뿐 Device의 상태에 반영되지 않습니다.
-INT32 CCrevisCtrl::GetTrigger()
-{
-	if (m_IsDeviceOpen)
-	{
-		unsigned int regSize = 32;
-		char* reg = new char[regSize];
-		m_status = ST_GetEnumReg(m_hDevice, MCAM_TRIGGER_MODE, reg, &regSize);
-		if (m_status != MCAM_ERR_SUCCESS)
-		{
-			delete reg;
-			return -1;
-		}
-		if (strcmp(reg, TRIGGER_MODE_ON))
-		{
-			delete reg;
-			return CAMERA_TRIG_SW;
-		}
-		else if (strcmp(reg, TRIGGER_MODE_OFF))
-		{
-			delete reg;
-			return CAMERA_TRIG_CONTINUOUS;
-		}
-	}
-	return -1;
-}
 // 카메라를 Close합니다. 20201029 장한결
 INT32 CCrevisCtrl::CloseDevice()
 {
@@ -234,13 +189,11 @@ BOOL CCrevisCtrl::SetDeviceExposure(DOUBLE ExposeTime)
 {
 	if (m_IsDeviceOpen)
 	{
-		ST_AcqStop(m_hDevice);
 		m_status = ST_SetFloatReg(m_hDevice, MCAM_EXPOSURE_TIME, ExposeTime);
 		if (m_status != MCAM_ERR_SUCCESS)
 		{
 			return FALSE;
 		}
-		ST_AcqStart(m_hDevice);
 	}
 	else
 	{

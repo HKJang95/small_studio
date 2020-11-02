@@ -13,8 +13,7 @@ public:
 	INT32 CloseDevice();
 	DOUBLE GetDeviceExposure();
 	BOOL SetDeviceExposure(DOUBLE ExposeTime);
-	BOOL SetTrigger(INT32 mode);
-	INT32 GetTrigger();
+	BOOL SetTrigger();
 
 public:
 	CRITICAL_SECTION mSc;
