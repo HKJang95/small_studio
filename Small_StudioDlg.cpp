@@ -64,6 +64,7 @@ CSmall_StudioDlg::CSmall_StudioDlg(CWnd* pParent /*=NULL*/)
 		m_CamIP[i] = _T("");
 		m_CamExposure[i] = 0.0;
 		m_IsOpen[i] = FALSE;
+		m_IsPlay[i] = FALSE;
 	}
 }
 
@@ -300,6 +301,7 @@ void CSmall_StudioDlg::OnBnClickedOptionbtn()
 	{
 		optiondlg.m_CamIP[i] = m_CamIP[i];
 		optiondlg.m_CamExposure[i].Format(_T("%lf"), m_CamExposure[i]);
+		optiondlg.m_CamTrig[i].Format(_T("%d"), m_CamTrig[i]);
 	}
 	optiondlg.m_optionPath = m_optionPath;
 	if (IDOK == optiondlg.DoModal())
@@ -309,11 +311,16 @@ void CSmall_StudioDlg::OnBnClickedOptionbtn()
 		{
 			m_CamIP[i] = optiondlg.m_CamIP[i];
 			m_CamExposure[i] = _ttof(optiondlg.m_CamExposure[i]);
+			m_CamTrig[i] = _ttoi(optiondlg.m_CamTrig[i]);
 			if (m_pCamCtrl[i] != NULL)
 			{
 				if (m_IsOpen[i])
 				{
 					m_pCamCtrl[i]->SetDeviceExposure(m_CamExposure[i]);
+				}
+				if (!m_IsPlay[i])
+				{
+					m_pCamCtrl[i]->SetTrigger(m_CamTrig[i]);
 				}
 			}
 		}
@@ -386,8 +393,9 @@ BOOL CSmall_StudioDlg::GetOptionValue(int mode)
 				GetPrivateProfileStringW(camnum, _T("Exposure"), _T("50000"), cBuf, 256, m_optionPath);
 				m_CamExposure[i] = _ttof(cBuf);
 				// Grab mode read
-
-				GetPrivateProfileStringW(camnum, _T("GRAB_MODE"), _T("1000"), cBuf, 256, m_optionPath);
+				CString str;
+				str.Format(_T("%d"), CAMERA_TRIG_SW);
+				GetPrivateProfileStringW(camnum, _T("GRAB_MODE"),str, cBuf, 256, m_optionPath);
 				m_CamTrig[i] = _ttoi(cBuf);
 			}
 		}
