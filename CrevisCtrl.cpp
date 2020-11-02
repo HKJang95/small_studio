@@ -4,8 +4,6 @@
 // 생성 시 연결할 카메라의 IP 주소를 입력해야 합니다. 20201029 장한결
 CCrevisCtrl::CCrevisCtrl(CString InputIP)
 {
-	::InitializeCriticalSection(&mSc);
-
 	m_IsDeviceOpen = FALSE;
 	m_IsInitSystem = false;
 	m_status = 0;
@@ -21,7 +19,6 @@ CCrevisCtrl::CCrevisCtrl(CString InputIP)
 // 소멸자 생성 시 카메라 Close를 해주지 않았다면 자동으로 Close를 진행합니다. 20201029 장한결
 CCrevisCtrl::~CCrevisCtrl()
 {
-	::DeleteCriticalSection(&mSc);
 	ST_AcqStop(m_hDevice);
 	CloseDevice();
 }
@@ -130,23 +127,18 @@ BOOL CCrevisCtrl::SetTrigger(INT32 mode)
 	// Trigger mode on 후 SW Trigger로 set 합니다. 20201102 장한결
 	if (m_IsDeviceOpen)
 	{
-		::EnterCriticalSection(&mSc);
 		if (mode == CAMERA_TRIG_SW)
 		{
 			m_status = ST_SetEnumReg(m_hDevice, MCAM_TRIGGER_MODE, TRIGGER_MODE_ON);
 			if (m_status != MCAM_ERR_SUCCESS)
 			{
-				::LeaveCriticalSection(&mSc);
 				return FALSE;
 			}
-			::LeaveCriticalSection(&mSc);
 			m_status = ST_SetEnumReg(m_hDevice, MCAM_TRIGGER_SOURCE, TRIGGER_SOURCE_SOFTWARE);
 			if (m_status != MCAM_ERR_SUCCESS)
 			{
-				::LeaveCriticalSection(&mSc);
 				return FALSE;
 			}
-			::LeaveCriticalSection(&mSc);
 			return TRUE;
 		}
 		// Continuous mode set
@@ -154,13 +146,10 @@ BOOL CCrevisCtrl::SetTrigger(INT32 mode)
 		else if (mode == CAMERA_TRIG_CONTINUOUS)
 		{
 			m_status = ST_SetEnumReg(m_hDevice, MCAM_TRIGGER_MODE, TRIGGER_MODE_OFF);
-			
 			if (m_status != MCAM_ERR_SUCCESS)
 			{
-				::LeaveCriticalSection(&mSc);
 				return FALSE;
 			}
-			::LeaveCriticalSection(&mSc);
 			return TRUE;
 		}
 		else
@@ -178,14 +167,11 @@ BOOL CCrevisCtrl::SetTrigger(INT32 mode)
 // Camera의 Trigger 상태 Check. Device의 상태만 받아올 뿐 Device의 상태에 반영되지 않습니다.
 INT32 CCrevisCtrl::GetTrigger()
 {
-	
 	if (m_IsDeviceOpen)
 	{
 		unsigned int regSize = 32;
 		char* reg = new char[regSize];
-		::EnterCriticalSection(&mSc);
 		m_status = ST_GetEnumReg(m_hDevice, MCAM_TRIGGER_MODE, reg, &regSize);
-		::LeaveCriticalSection(&mSc);
 		if (m_status != MCAM_ERR_SUCCESS)
 		{
 			delete reg;
