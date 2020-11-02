@@ -108,7 +108,7 @@ INT32 CCrevisCtrl::OpenDevice()
 				m_IsAcq = TRUE;
 			}
 			m_bufferSize = m_camWidth * m_camHeight;
-			m_pImage = (BYTE *)malloc(m_bufferSize);
+			m_pImage = new BYTE[m_bufferSize];
 			::ZeroMemory(m_pImage, m_bufferSize);
 
 			m_IsDeviceOpen = TRUE;
@@ -196,6 +196,8 @@ INT32 CCrevisCtrl::CloseDevice()
 {
 	if (m_IsDeviceOpen)
 	{
+		delete m_pImage;
+
 		if (m_IsAcq)
 		{
 			ST_AcqStop(m_hDevice);
