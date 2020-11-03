@@ -49,7 +49,7 @@ private:
 	BOOL			GetOptionValue(int mode, int dispNum);
 	BOOL			DrawImageSeq(int dispNum);
 	BOOL			Bytes2Image(BYTE* bytes, int byteSize, CImage* img);
-	
+	BOOL			CImageToPic(CDC* pDC, CImage* img, int dispNum);
 
 public:
 	bool			m_IsSystemInit;		// Camera SDK Init 상태 점검입니다.

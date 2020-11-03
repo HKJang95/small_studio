@@ -351,14 +351,36 @@ void CSmall_StudioDlg::OnBnClickedLightopen()
 
 void CSmall_StudioDlg::OnBnClickedCam1play()
 {
-	DrawImageSeq(0);
+	if (m_IsPlay[0])
+	{
+		GetDlgItem(IDC_CAM1PLAY)->SetWindowTextW(_T("Play"));
+		m_IsPlay[0] = FALSE;
+	}
+	else
+	{
+		m_IsPlay[0] = TRUE;
+		GetDlgItem(IDC_CAM1PLAY)->SetWindowTextW(_T("Stop"));
+		DrawImageSeq(0);
+	} // SW Trigger일때만 적용됨 현재는
+
+	
 	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
 }
 
 
 void CSmall_StudioDlg::OnBnClickedCam2play()
 {
-	DrawImageSeq(1);
+	if (m_IsPlay[1])
+	{
+		GetDlgItem(IDC_CAM2PLAY)->SetWindowTextW(_T("Play"));
+		m_IsPlay[1] = FALSE;
+	}
+	else
+	{
+		GetDlgItem(IDC_CAM2PLAY)->SetWindowTextW(_T("Stop"));
+		m_IsPlay[1] = TRUE;
+		DrawImageSeq(1);
+	}
 	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
 }
 
@@ -460,6 +482,21 @@ BOOL CSmall_StudioDlg::DrawImageSeq(int dispNum)
 		::EnterCriticalSection(&mSc);
 		m_pCamCtrl[dispNum]->GrabImageSW();
 		Bytes2Image(m_pCamCtrl[dispNum]->m_pImage, m_pCamCtrl[dispNum]->m_bufferSize, m_pCOriImage[dispNum]);
+		
+		if (dispNum == 0)
+		{
+			CDC memDC;
+			CImageToPic(&memDC, m_pCOriImage[0], 0);
+		}
+		else if (dispNum == 1)
+		{
+
+		}
+		else
+		{
+			return FALSE;
+		}
+
 		::LeaveCriticalSection(&mSc);
 	}
 	else if (m_CamTrig[dispNum] == CAMERA_TRIG_CONTINUOUS)
@@ -498,4 +535,18 @@ BOOL CSmall_StudioDlg::Bytes2Image(BYTE* bytes, int byteSize, CImage* img)
 	{
 		return FALSE;
 	}
+}
+
+BOOL CSmall_StudioDlg::CImageToPic(CDC* pDC, CImage* img, int dispNum)
+{
+	CClientDC dc(GetDlgItem(IDC_CAM1PLAY));
+	
+	CRect rect;
+	GetDlgItem(IDC_CAM1PLAY)->GetClientRect(&rect);
+
+	img->Draw(pDC->GetSafeHdc(), rect);
+
+	dc.BitBlt(0, 0, img->GetWidth(), img->GetHeight(), pDC, 0, 0, SRCCOPY);
+
+	return TRUE;
 }
