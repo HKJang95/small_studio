@@ -11,7 +11,7 @@ CCrevisCtrl::CCrevisCtrl(CString InputIP)
 	m_IsAcq = FALSE;
 	m_pImage = NULL;
 	m_bufferSize = 0;
-
+	
 	// 생성 시 option.ini의 내용을 읽음. 읽는 부분은 Main(Small_StudioDlg)에서 정의 20201102 장한결
 	m_deviceIPCStr = InputIP;
 }
@@ -21,6 +21,35 @@ CCrevisCtrl::~CCrevisCtrl()
 {
 	ST_AcqStop(m_hDevice);
 	CloseDevice();
+}
+
+INT32 CCrevisCtrl::GetTriggerStatus()
+{
+	char* reg;
+	UINT32 regSize = 32;
+	reg = new char[regSize];
+	if (m_IsDeviceOpen)
+	{
+		m_status = ST_GetEnumReg(m_hDevice, MCAM_TRIGGER_MODE, reg, &regSize);
+		if (m_status != MCAM_ERR_SUCCESS)
+		{
+			delete reg;
+			return CAMERA_INFOGET_FAIL;
+		}
+
+		if (strcmp(reg, TRIGGER_MODE_ON))
+		{
+			delete reg;
+			return CAMERA_TRIG_SW;
+		}
+		else if (strcmp(reg, TRIGGER_MODE_OFF))
+		{
+			delete reg;
+			return CAMERA_TRIG_CONTINUOUS;
+		}
+	}
+	delete reg;
+	return CAMERA_INFOGET_FAIL;
 }
 
 // 생성자에서 지정해 준 IP 주소로 카메라를 Open합니다. 20201029 장한결
@@ -94,8 +123,6 @@ INT32 CCrevisCtrl::OpenDevice()
 			{
 				return CAMERA_INFOGET_FAIL;
 			}
-
-			SetTrigger();
 			
 			m_status = ST_AcqStart(m_hDevice);
 			if (m_status != MCAM_ERR_SUCCESS)
@@ -120,8 +147,77 @@ INT32 CCrevisCtrl::OpenDevice()
 	return CAMERA_IP_NOTFOUND;
 }
 
+BOOL CCrevisCtrl::TriggerSet(INT32 Trigger)
+{
+	INT32 currentTrig;
+	if (m_IsDeviceOpen)
+	{
+		if (Trigger == CAMERA_TRIG_CONTINUOUS)
+		{
+			currentTrig = GetTriggerStatus();
+			if (currentTrig == CAMERA_TRIG_CONTINUOUS)
+			{
+				return TRUE;
+			}
+			else if (currentTrig == CAMERA_TRIG_SW)
+			{
+				TriggerOff();
+				return TRUE;
+			}
+			else
+			{
+				return FALSE;
+			}
+		}
+
+		else if (Trigger == CAMERA_TRIG_SW)
+		{
+			currentTrig = GetTriggerStatus();
+			if (currentTrig == CAMERA_TRIG_SW)
+			{
+				return TRUE;
+			}
+			else if (currentTrig == CAMERA_TRIG_CONTINUOUS)
+			{
+				SetSWTrigger();
+				return TRUE;
+			}
+			else
+			{
+				return FALSE;
+			}
+		}
+		else
+		{
+			return FALSE;
+		}
+	}
+	else
+	{
+		return FALSE;
+	}
+	
+}
+
+BOOL CCrevisCtrl::TriggerOff()
+{
+	if (m_IsDeviceOpen)
+	{
+		m_status = ST_SetEnumReg(m_hDevice, MCAM_TRIGGER_MODE, TRIGGER_MODE_OFF);
+		if (m_status != MCAM_ERR_SUCCESS)
+		{
+			return FALSE;
+		}
+		return TRUE;
+	}
+	else
+	{
+		return FALSE;
+	}
+}
+
 // Trigger mode setting 입니다. 20201102 장한결
-BOOL CCrevisCtrl::SetTrigger()
+BOOL CCrevisCtrl::SetSWTrigger()
 {
 	// SW Trigger set
 	// Trigger mode on 후 SW Trigger로 set 합니다. 20201102 장한결
@@ -151,6 +247,7 @@ INT32 CCrevisCtrl::CloseDevice()
 	if (m_IsDeviceOpen)
 	{
 		delete m_pImage;
+		m_pImage = NULL;
 
 		if (m_IsAcq)
 		{
