@@ -48,7 +48,7 @@ private:
 	BOOL			GetOptionValue(int mode);
 	BOOL			GetOptionValue(int mode, int dispNum);
 	BOOL			DrawImageSeq(int dispNum);
-	BOOL			Bytes2Image(BYTE* bytes, int byteSize, CImage& img);
+	BOOL			Bytes2Image(BYTE* bytes, int byteSize, CImage* img);
 	
 
 public:

@@ -195,6 +195,11 @@ void CSmall_StudioDlg::OnDestroy()
 		{
 			delete m_pCamCtrl[i];
 		}
+
+		if (m_pCOriImage[i] != NULL)
+		{
+			delete m_pCOriImage[i];
+		}
 	}
 
 	if (m_IsSystemInit)
@@ -206,6 +211,7 @@ void CSmall_StudioDlg::OnDestroy()
 
 BOOL CSmall_StudioDlg::camOpenSeq(int dispNum)
 {
+	
 	if (!m_IsSystemInit)
 	{
 		AfxMessageBox(_T("System Init이 되지 않았습니다. 카메라를 사용할 수 없습니다."));
@@ -226,11 +232,14 @@ BOOL CSmall_StudioDlg::camOpenSeq(int dispNum)
 
 	if (!m_pCamCtrl[dispNum]->SetDeviceExposure(m_CamExposure[dispNum]))
 	{
+		m_pCOriImage[dispNum] = new CImage();
 		m_IsOpen[dispNum] = FALSE;
 		return FALSE;
 	}
 
 	m_IsOpen[dispNum] = TRUE;
+
+	
 	return TRUE;
 }
 
@@ -244,6 +253,7 @@ void CSmall_StudioDlg::OnBnClickedCam1open()
 	{
 		if (camOpenSeq(0))
 		{
+			
 			GetDlgItem(IDC_CAM1OPEN)->SetWindowTextW(_T("Camera 1 Open"));
 		}
 		else
@@ -441,11 +451,11 @@ BOOL CSmall_StudioDlg::GetOptionValue(int mode, int dispNum)
 
 BOOL CSmall_StudioDlg::DrawImageSeq(int dispNum)
 {
-	
 	if (m_CamTrig[dispNum] == CAMERA_TRIG_SW)
 	{
 		::EnterCriticalSection(&mSc);
 		m_pCamCtrl[dispNum]->GrabImageSW();
+		Bytes2Image(m_pCamCtrl[dispNum]->m_pImage, m_pCamCtrl[dispNum]->m_bufferSize, m_pCOriImage[dispNum]);
 		::LeaveCriticalSection(&mSc);
 	}
 	else if (m_CamTrig[dispNum] == CAMERA_TRIG_CONTINUOUS)
@@ -454,4 +464,34 @@ BOOL CSmall_StudioDlg::DrawImageSeq(int dispNum)
 	}
 
 	return TRUE;
+}
+
+BOOL CSmall_StudioDlg::Bytes2Image(BYTE* bytes, int byteSize, CImage* img)
+{
+	if (bytes != NULL)
+	{
+		HGLOBAL hGlobalImage = GlobalAlloc(GMEM_MOVEABLE, byteSize);
+		BYTE* pBits = (BYTE*)GlobalLock(hGlobalImage);
+		memcpy(pBits, bytes, byteSize);
+		GlobalUnlock(hGlobalImage);
+		IStream* pStrImg = NULL;
+		if (CreateStreamOnHGlobal(hGlobalImage, TRUE, &pStrImg) != S_OK)
+		{
+			GlobalFree(hGlobalImage);
+			return FALSE;
+		}
+
+		if (!img->IsNull())
+		{
+			img->Destroy();
+		}
+		img->Load(pStrImg);
+		pStrImg->Release();
+		GlobalFree(hGlobalImage);
+		return TRUE;
+	}
+	else
+	{
+		return FALSE;
+	}
 }
