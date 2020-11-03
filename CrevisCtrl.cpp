@@ -196,7 +196,6 @@ BOOL CCrevisCtrl::TriggerSet(INT32 Trigger)
 	{
 		return FALSE;
 	}
-	
 }
 
 BOOL CCrevisCtrl::TriggerOff()
@@ -299,4 +298,28 @@ BOOL CCrevisCtrl::SetDeviceExposure(DOUBLE ExposeTime)
 	return TRUE;
 }
 
+BOOL CCrevisCtrl::GrabImageSW()
+{
+	if (m_IsDeviceOpen)
+	{
+		m_status = ST_SetCmdReg(m_hDevice, MCAM_TRIGGER_SOFTWARE);
+		if (m_status != MCAM_ERR_SUCCESS)
+		{
+			return FALSE;
+		}
+
+		Sleep(1);
+
+		m_status = ST_GrabImageAsync(m_hDevice, m_pImage, m_bufferSize, -1);
+		if (m_status != MCAM_ERR_SUCCESS)
+		{
+			return FALSE;
+		}
+		return TRUE;
+	}
+	else
+	{
+		return FALSE;
+	}
+}
 
