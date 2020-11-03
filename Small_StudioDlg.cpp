@@ -211,8 +211,9 @@ BOOL CSmall_StudioDlg::camOpenSeq(int dispNum)
 	}
 	m_pCamCtrl[dispNum] = new CCrevisCtrl(m_CamIP[dispNum]);
 	m_statusCode = m_pCamCtrl[dispNum]->OpenDevice();
-	m_strErr.Format(_T("!!!!!!!!!!!!!!!!!!!!! DEBUG %d Cam status : %d !!!!!!!!!!!!!!!!!\n"),dispNum, m_statusCode);
+	m_strErr.Format(_T("!!!!!!!!!!!!!!!!!!!!! DEBUG %d Cam status : %d !!!!!!!!!!!!!!!!!\n"), dispNum, m_statusCode);
 	OutputDebugString(m_strErr);
+	m_pCamCtrl[dispNum]->TriggerSet(m_CamTrig[dispNum]);
 	if (m_statusCode != CAMERA_OPEN_SUCCESS)
 	{
 		delete m_pCamCtrl[dispNum];
@@ -301,17 +302,23 @@ void CSmall_StudioDlg::OnBnClickedOptionbtn()
 	optiondlg.m_optionPath = m_optionPath;
 	if (IDOK == optiondlg.DoModal())
 	{
-		// 옵션 setting 완료시. ini에 저장된 값 프로그램에도 반영.
+		// 옵션 setting 완료시. ini에 저장된 값 프로그램에도 반영. 20201103 장한결
 		for (int i = 0; i < MAXCAM; i++)
 		{
+			// 기타 값들은 Replay시 혹은 ReOpen시 반영 20201103 장한결
 			m_CamIP[i] = optiondlg.m_CamIP[i];
 			m_CamExposure[i] = _ttof(optiondlg.m_CamExposure[i]);
 			m_CamTrig[i] = _ttoi(optiondlg.m_CamTrig[i]);
 			CString strErr;
 			if (m_pCamCtrl[i] != NULL)
 			{
+				// Exposure time의 경우 바로 반영됩니다. 20201103 장한결
 				if (m_IsOpen[i])
 				{
+					if (!m_IsPlay[i])
+					{
+						m_pCamCtrl[i]->TriggerSet(m_CamTrig[i]);
+					}
 					m_pCamCtrl[i]->SetDeviceExposure(m_CamExposure[i]);
 				}
 			}
