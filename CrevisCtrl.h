@@ -14,10 +14,11 @@ public:
 	DOUBLE GetDeviceExposure();
 	BOOL SetDeviceExposure(DOUBLE ExposeTime);
 	BOOL TriggerSet(INT32 Trigger);
+	BOOL TriggerOff();
+	BOOL GrabImageSW();
 
 private:
 	BOOL SetSWTrigger();
-	BOOL TriggerOff();
 	INT32 GetTriggerStatus();
 
 public:

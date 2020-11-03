@@ -93,6 +93,7 @@ BOOL CSmall_StudioDlg::OnInitDialog()
 {
 	CDialogEx::OnInitDialog();
 	
+	::InitializeCriticalSection(&mSc);
 	m_optionPath.Format(_T("%s\\option.ini"), GetExePath());
 	GetOptionValue(OPT_READ_ALL);
 
@@ -200,6 +201,7 @@ void CSmall_StudioDlg::OnDestroy()
 	{
 		ST_FreeSystem();
 	}
+	::DeleteCriticalSection(&mSc);
 }
 
 BOOL CSmall_StudioDlg::camOpenSeq(int dispNum)
@@ -319,7 +321,6 @@ void CSmall_StudioDlg::OnBnClickedOptionbtn()
 					{
 						m_pCamCtrl[i]->TriggerSet(m_CamTrig[i]);
 					}
-					m_pCamCtrl[i]->SetDeviceExposure(m_CamExposure[i]);
 				}
 			}
 		}
@@ -336,12 +337,14 @@ void CSmall_StudioDlg::OnBnClickedLightopen()
 
 void CSmall_StudioDlg::OnBnClickedCam1play()
 {
+	DrawImageSeq(0);
 	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
 }
 
 
 void CSmall_StudioDlg::OnBnClickedCam2play()
 {
+	DrawImageSeq(1);
 	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
 }
 
@@ -436,3 +439,19 @@ BOOL CSmall_StudioDlg::GetOptionValue(int mode, int dispNum)
 	return TRUE;
 }
 
+BOOL CSmall_StudioDlg::DrawImageSeq(int dispNum)
+{
+	
+	if (m_CamTrig[dispNum] == CAMERA_TRIG_SW)
+	{
+		::EnterCriticalSection(&mSc);
+		m_pCamCtrl[dispNum]->GrabImageSW();
+		::LeaveCriticalSection(&mSc);
+	}
+	else if (m_CamTrig[dispNum] == CAMERA_TRIG_CONTINUOUS)
+	{
+
+	}
+
+	return TRUE;
+}

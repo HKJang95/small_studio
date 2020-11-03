@@ -43,22 +43,27 @@ public:
 	afx_msg void OnDestroy();
 
 private:
-	BOOL camOpenSeq(int dispNum);
-	CString GetExePath();
-	BOOL GetOptionValue(int mode);
-	BOOL GetOptionValue(int mode, int dispNum);
+	BOOL			camOpenSeq(int dispNum);
+	CString			GetExePath();
+	BOOL			GetOptionValue(int mode);
+	BOOL			GetOptionValue(int mode, int dispNum);
+	BOOL			DrawImageSeq(int dispNum);
+	BOOL			Bytes2Image(BYTE* bytes, int byteSize, CImage& img);
 	
 
 public:
 	bool			m_IsSystemInit;		// Camera SDK Init 상태 점검입니다.
-	BOOL			m_IsOpen[MAXCAM];
-	BOOL			m_IsPlay[MAXCAM];
+	BOOL			m_IsOpen[MAXCAM];	// 카메라 Open 여부
+	BOOL			m_IsPlay[MAXCAM];	// Play 여부 (Grab & Show)
 	CCrevisCtrl*	m_pCamCtrl[MAXCAM]; // 카메라용 Class 객체 포인터입니다. 
 	INT32			m_statusCode;		// 프로그램 에러 코드를 저장하는 변수입니다.
 	CString			m_strErr;			// 출력할 에러 String입니다
 	CString			m_CamIP[MAXCAM];	// 사용자로부터 입력받을 IP 주소 String입니다.
 	DOUBLE			m_CamExposure[MAXCAM]; // 사용자로부터 입력받을 Exposure time입니다.
-	CString			m_optionPath;
+	CString			m_optionPath;		// option.ini 파일의 path (초기 실행시 한 번만 받아옴)
 	INT32			m_CamTrig[MAXCAM]; // 사용자로부터 입력받을 카메라의 Trigger mode
+	CImage*			m_pCOriImage[MAXCAM]; // 이미지 객체
+
+	CRITICAL_SECTION mSc;
 
 };
