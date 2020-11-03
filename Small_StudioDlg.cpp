@@ -60,6 +60,7 @@ CSmall_StudioDlg::CSmall_StudioDlg(CWnd* pParent /*=NULL*/)
 
 	for (int i = 0; i < MAXCAM; i++)
 	{
+		m_pCOriImage[i] = NULL;
 		m_pCamCtrl[i] = NULL;
 		m_CamIP[i] = _T("");
 		m_CamExposure[i] = 0.0;
@@ -232,11 +233,11 @@ BOOL CSmall_StudioDlg::camOpenSeq(int dispNum)
 
 	if (!m_pCamCtrl[dispNum]->SetDeviceExposure(m_CamExposure[dispNum]))
 	{
-		m_pCOriImage[dispNum] = new CImage();
+		
 		m_IsOpen[dispNum] = FALSE;
 		return FALSE;
 	}
-
+	m_pCOriImage[dispNum] = new CImage;
 	m_IsOpen[dispNum] = TRUE;
 
 	
@@ -253,8 +254,8 @@ void CSmall_StudioDlg::OnBnClickedCam1open()
 	{
 		if (camOpenSeq(0))
 		{
-			
 			GetDlgItem(IDC_CAM1OPEN)->SetWindowTextW(_T("Camera 1 Open"));
+			GetDlgItem(IDC_CAM1PLAY)->EnableWindow(TRUE);
 		}
 		else
 		{
@@ -268,6 +269,7 @@ void CSmall_StudioDlg::OnBnClickedCam1open()
 		m_pCamCtrl[0] = NULL;
 		m_IsOpen[0] = FALSE;
 		GetDlgItem(IDC_CAM1OPEN)->SetWindowTextW(_T("Camera 1 Closed"));
+		GetDlgItem(IDC_CAM1PLAY)->EnableWindow(FALSE);
 	}
 	GetDlgItem(IDC_CAM1OPEN)->EnableWindow(TRUE);
 }
@@ -282,6 +284,7 @@ void CSmall_StudioDlg::OnBnClickedCam2open()
 		if (camOpenSeq(1))
 		{
 			GetDlgItem(IDC_CAM2OPEN)->SetWindowTextW(_T("Camera 2 Open"));
+			GetDlgItem(IDC_CAM2PLAY)->EnableWindow(TRUE);
 		}
 		else
 		{
@@ -295,6 +298,7 @@ void CSmall_StudioDlg::OnBnClickedCam2open()
 		m_pCamCtrl[1] = NULL;
 		m_IsOpen[1] = FALSE;
 		GetDlgItem(IDC_CAM2OPEN)->SetWindowTextW(_T("Camera 2 Closed"));
+		GetDlgItem(IDC_CAM2PLAY)->EnableWindow(FALSE);
 	}
 	GetDlgItem(IDC_CAM2OPEN)->EnableWindow(TRUE);
 }
