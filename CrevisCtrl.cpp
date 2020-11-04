@@ -23,7 +23,7 @@ CCrevisCtrl::~CCrevisCtrl()
 	CloseDevice();
 }
 
-INT32 CCrevisCtrl::GetTriggerStatus()
+CAMERA_ERRCODE CCrevisCtrl::GetTriggerStatus()
 {
 	char* reg;
 	UINT32 regSize = 32;
@@ -53,7 +53,7 @@ INT32 CCrevisCtrl::GetTriggerStatus()
 }
 
 // 생성자에서 지정해 준 IP 주소로 카메라를 Open합니다. 20201029 장한결
-INT32 CCrevisCtrl::OpenDevice()
+CAMERA_ERRCODE CCrevisCtrl::OpenDevice()
 {
 	// System Init 체크입니다 20201029 장한결
 	m_status = ST_IsInitSystem(&m_IsInitSystem);
@@ -241,7 +241,7 @@ BOOL CCrevisCtrl::SetSWTrigger()
 }
 
 // 카메라를 Close합니다. 20201029 장한결
-INT32 CCrevisCtrl::CloseDevice()
+CAMERA_ERRCODE CCrevisCtrl::CloseDevice()
 {
 	if (m_IsDeviceOpen)
 	{

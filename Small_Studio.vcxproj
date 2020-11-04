@@ -279,6 +279,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CrevisCtrl.h" />
+    <ClInclude Include="LightCtrl.h" />
     <ClInclude Include="OptionDlg.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="Small_Studio.h" />
@@ -288,6 +289,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CrevisCtrl.cpp" />
+    <ClCompile Include="LightCtrl.cpp" />
     <ClCompile Include="OptionDlg.cpp" />
     <ClCompile Include="Small_Studio.cpp" />
     <ClCompile Include="Small_StudioDlg.cpp" />

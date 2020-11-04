@@ -3,6 +3,7 @@
 // 표준 시스템 포함 파일 및 프로젝트 관련 포함 파일이 
 // 들어 있는 포함 파일입니다.
 #define MAXCAM 2
+#define LIGHTCH 4
 
 // 카메라 관련 에러코드 20201030 장한결
 enum CAMERA_ERRCODE 
@@ -59,7 +60,7 @@ enum OPTION_READ_MODE
 #include <afxcontrolbars.h>     // MFC의 리본 및 컨트롤 막대 지원
 #include "VirtualFG40.h" // Crevis Camera용 SDK include
 #include "OptionDlg.h"
-
+#include <atlimage.h>
 
 
 

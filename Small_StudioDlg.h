@@ -48,8 +48,8 @@ private:
 	BOOL			GetOptionValue(int mode);
 	BOOL			GetOptionValue(int mode, int dispNum);
 	BOOL			DrawImageSeq(int dispNum);
+	BOOL			DIBMake(int dispNum);
 	BOOL			Bytes2Image(BYTE* bytes, int byteSize, CImage* img);
-	BOOL			CImageToPic(CDC* pDC, CImage* img, int dispNum);
 
 public:
 	bool			m_IsSystemInit;		// Camera SDK Init 상태 점검입니다.
@@ -58,12 +58,20 @@ public:
 	CCrevisCtrl*	m_pCamCtrl[MAXCAM]; // 카메라용 Class 객체 포인터입니다. 
 	INT32			m_statusCode;		// 프로그램 에러 코드를 저장하는 변수입니다.
 	CString			m_strErr;			// 출력할 에러 String입니다
-	CString			m_CamIP[MAXCAM];	// 사용자로부터 입력받을 IP 주소 String입니다.
-	DOUBLE			m_CamExposure[MAXCAM]; // 사용자로부터 입력받을 Exposure time입니다.
+
 	CString			m_optionPath;		// option.ini 파일의 path (초기 실행시 한 번만 받아옴)
-	INT32			m_CamTrig[MAXCAM]; // 사용자로부터 입력받을 카메라의 Trigger mode
-	CImage*			m_pCOriImage[MAXCAM]; // 이미지 객체
+
+	HBITMAP			m_hBmp[MAXCAM];
+	CBitmap*		m_pCOriImage[MAXCAM]; // 이미지 객체
+
+	//option.ini 파일에서 read할 변수 20201103 장한결
+	CString			m_ComPort;			// 조명 Controller에서 사용할 port number입니다.
+	CString			m_BaudRate;			// 조명 Controller에서 사용할 baud rate입니다.
+	CString			m_CamIP[MAXCAM];	// IP 주소 String입니다.
+	DOUBLE			m_CamExposure[MAXCAM]; // Exposure time입니다.
+	INT32			m_CamTrig[MAXCAM]; // 카메라의 Trigger mode 입니다.
+
+
 
 	CRITICAL_SECTION mSc;
-
 };

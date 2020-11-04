@@ -237,7 +237,6 @@ BOOL CSmall_StudioDlg::camOpenSeq(int dispNum)
 		m_IsOpen[dispNum] = FALSE;
 		return FALSE;
 	}
-	m_pCOriImage[dispNum] = new CImage;
 	m_IsOpen[dispNum] = TRUE;
 
 	
@@ -481,12 +480,12 @@ BOOL CSmall_StudioDlg::DrawImageSeq(int dispNum)
 	{
 		::EnterCriticalSection(&mSc);
 		m_pCamCtrl[dispNum]->GrabImageSW();
-		Bytes2Image(m_pCamCtrl[dispNum]->m_pImage, m_pCamCtrl[dispNum]->m_bufferSize, m_pCOriImage[dispNum]);
 		
+		DIBMake(dispNum);
+
 		if (dispNum == 0)
 		{
-			CDC memDC;
-			CImageToPic(&memDC, m_pCOriImage[0], 0);
+			
 		}
 		else if (dispNum == 1)
 		{
@@ -507,46 +506,27 @@ BOOL CSmall_StudioDlg::DrawImageSeq(int dispNum)
 	return TRUE;
 }
 
-BOOL CSmall_StudioDlg::Bytes2Image(BYTE* bytes, int byteSize, CImage* img)
+BOOL CSmall_StudioDlg::DIBMake(int dispNum)
 {
-	if (bytes != NULL)
-	{
-		HGLOBAL hGlobalImage = GlobalAlloc(GMEM_MOVEABLE, byteSize);
-		BYTE* pBits = (BYTE*)GlobalLock(hGlobalImage);
-		memcpy(pBits, bytes, byteSize);
-		GlobalUnlock(hGlobalImage);
-		IStream* pStrImg = NULL;
-		if (CreateStreamOnHGlobal(hGlobalImage, TRUE, &pStrImg) != S_OK)
-		{
-			GlobalFree(hGlobalImage);
-			return FALSE;
-		}
+	HDC hDC = ::GetDC(NULL);
 
-		if (!img->IsNull())
-		{
-			img->Destroy();
-		}
-		img->Load(pStrImg);
-		pStrImg->Release();
-		GlobalFree(hGlobalImage);
-		return TRUE;
-	}
-	else
-	{
-		return FALSE;
-	}
-}
+	BITMAPINFO bmi;
+	memset(&bmi, 0, sizeof(BITMAPINFO));
+	bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+	bmi.bmiHeader.biWidth = m_pCamCtrl[dispNum]->m_camWidth;
+	bmi.bmiHeader.biHeight = m_pCamCtrl[dispNum]->m_camHeight;
+	bmi.bmiHeader.biPlanes = 1;
+	bmi.bmiHeader.biBitCount = 8;
+	bmi.bmiHeader.biCompression = BI_RGB;
+	m_hBmp[dispNum] = CreateDIBSection(hDC, &bmi, DIB_RGB_COLORS, (void**)&(m_pCamCtrl[dispNum]->m_pImage), NULL, NULL);
 
-BOOL CSmall_StudioDlg::CImageToPic(CDC* pDC, CImage* img, int dispNum)
-{
-	CClientDC dc(GetDlgItem(IDC_CAM1PLAY));
-	
-	CRect rect;
-	GetDlgItem(IDC_CAM1PLAY)->GetClientRect(&rect);
+	::ReleaseDC(NULL, hDC);
+	CImage test;
+	test.Attach(*m_hBmp);
+	CString teststr;
 
-	img->Draw(pDC->GetSafeHdc(), rect);
-
-	dc.BitBlt(0, 0, img->GetWidth(), img->GetHeight(), pDC, 0, 0, SRCCOPY);
+	teststr.Format(_T("%d"), test.GetHeight());
+	OutputDebugString(teststr);
 
 	return TRUE;
 }

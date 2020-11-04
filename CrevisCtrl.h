@@ -9,17 +9,17 @@ class CCrevisCtrl
 public:
 	CCrevisCtrl(CString InputIP);
 	~CCrevisCtrl();
-	INT32 OpenDevice();
-	INT32 CloseDevice();
-	DOUBLE GetDeviceExposure();
-	BOOL SetDeviceExposure(DOUBLE ExposeTime);
-	BOOL TriggerSet(INT32 Trigger);
-	BOOL TriggerOff();
-	BOOL GrabImageSW();
+	CAMERA_ERRCODE  OpenDevice();
+	CAMERA_ERRCODE	CloseDevice();
+	DOUBLE			GetDeviceExposure();
+	BOOL			SetDeviceExposure(DOUBLE ExposeTime);
+	BOOL			TriggerSet(INT32 Trigger);
+	BOOL			TriggerOff();
+	BOOL			GrabImageSW();
 
 private:
-	BOOL SetSWTrigger();
-	INT32 GetTriggerStatus();
+	BOOL			SetSWTrigger();
+	CAMERA_ERRCODE	GetTriggerStatus();
 
 public:
 	CRITICAL_SECTION mSc;
