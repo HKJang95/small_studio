@@ -222,8 +222,8 @@ BOOL CSmall_StudioDlg::camOpenSeq(int dispNum)
 	m_statusCode = m_pCamCtrl[dispNum]->OpenDevice();
 	m_strErr.Format(_T("!!!!!!!!!!!!!!!!!!!!! DEBUG %d Cam status : %d !!!!!!!!!!!!!!!!!\n"), dispNum, m_statusCode);
 	OutputDebugString(m_strErr);
-	// m_pCamCtrl[dispNum]->TriggerSet(m_CamTrig[dispNum]);
-	m_pCamCtrl[dispNum]->SetSWTrigger();
+	m_pCamCtrl[dispNum]->TriggerSet(m_CamTrig[dispNum]);
+
 	if (m_statusCode != CAMERA_OPEN_SUCCESS)
 	{
 		delete m_pCamCtrl[dispNum];
@@ -233,8 +233,7 @@ BOOL CSmall_StudioDlg::camOpenSeq(int dispNum)
 	}
 
 	if (!m_pCamCtrl[dispNum]->SetDeviceExposure(m_CamExposure[dispNum]))
-	{
-		
+	{		
 		m_IsOpen[dispNum] = FALSE;
 		return FALSE;
 	}
@@ -481,8 +480,6 @@ BOOL CSmall_StudioDlg::DrawImageSeq(int dispNum)
 	{
 		::EnterCriticalSection(&mSc);
 		m_pCamCtrl[dispNum]->GrabImageSW();
-		
-		DIBMake(dispNum);
 		m_pCOriImage[dispNum] = new CImage();
 		hbitmap2CImage(dispNum);
 
@@ -499,6 +496,8 @@ BOOL CSmall_StudioDlg::DrawImageSeq(int dispNum)
 		}
 
 		::LeaveCriticalSection(&mSc);
+
+		DIBMake(dispNum);
 	}
 	else if (m_CamTrig[dispNum] == CAMERA_TRIG_CONTINUOUS)
 	{
@@ -516,6 +515,10 @@ BOOL CSmall_StudioDlg::DIBMake(int dispNum)
 
 	BITMAPINFO bmi;
 	memset(&bmi, 0, sizeof(BITMAPINFO));
+	for (int i = 0; i < 300; i++)
+	{
+		m_pCamCtrl[dispNum]->m_pImage[i];
+	}
 	bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);		
 	bmi.bmiHeader.biWidth = m_pCamCtrl[dispNum]->m_camWidth;	// Cam에서 얻어온 Width
 	bmi.bmiHeader.biHeight = m_pCamCtrl[dispNum]->m_camHeight;	// Cam에서 얻어온 Height
@@ -524,13 +527,6 @@ BOOL CSmall_StudioDlg::DIBMake(int dispNum)
 	bmi.bmiHeader.biCompression = BI_RGB;						// RGB Raw data이므로
 	// CreateDIBSection으로 HBITMAP 생성
 	m_hBmp[dispNum] = CreateDIBSection(hDC, &bmi, DIB_RGB_COLORS, (void**)&(m_pCamCtrl[dispNum]->m_pImage), NULL, NULL);
-
-	for (int i = 500; i < 540; i++)
-	{
-		CString debug;
-		debug.Format(_T("%d\n"), m_pCamCtrl[dispNum]->m_pImage[i]);
-		OutputDebugString(debug);
-	}
 	
 	::ReleaseDC(NULL, hDC);
 	((CStatic *)GetDlgItem(IDC_PIC1))->SetBitmap(m_hBmp[dispNum]);
