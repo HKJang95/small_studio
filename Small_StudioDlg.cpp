@@ -515,10 +515,6 @@ BOOL CSmall_StudioDlg::DIBMake(int dispNum)
 
 	BITMAPINFO bmi;
 	memset(&bmi, 0, sizeof(BITMAPINFO));
-	for (int i = 0; i < 300; i++)
-	{
-		m_pCamCtrl[dispNum]->m_pImage[i];
-	}
 	bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);		
 	bmi.bmiHeader.biWidth = m_pCamCtrl[dispNum]->m_camWidth;	// Cam에서 얻어온 Width
 	bmi.bmiHeader.biHeight = m_pCamCtrl[dispNum]->m_camHeight;	// Cam에서 얻어온 Height
@@ -527,9 +523,7 @@ BOOL CSmall_StudioDlg::DIBMake(int dispNum)
 	bmi.bmiHeader.biCompression = BI_RGB;						// RGB Raw data이므로
 	// CreateDIBSection으로 HBITMAP 생성
 	m_hBmp[dispNum] = CreateDIBSection(hDC, &bmi, DIB_RGB_COLORS, (void**)&(m_pCamCtrl[dispNum]->m_pImage), NULL, NULL);
-	
 	::ReleaseDC(NULL, hDC);
-	((CStatic *)GetDlgItem(IDC_PIC1))->SetBitmap(m_hBmp[dispNum]);
 	return TRUE;
 }
 
@@ -539,6 +533,18 @@ BOOL CSmall_StudioDlg::hbitmap2CImage(int dispNum)
 	{
 		m_pCOriImage[dispNum]->Destroy();
 		m_pCOriImage[dispNum]->Attach(m_hBmp[dispNum]);
+		COLORREF ref;
+		CString debug;
+
+		for (int i = 0; i < 10; i++)
+		{
+			for (int j = 0; j < 10; j++)
+			{
+				ref = m_pCOriImage[dispNum]->GetPixel(i, j);
+				debug.Format(_T("%d"), ref);
+			}
+		}
+		
 	}
 
 	return TRUE;
