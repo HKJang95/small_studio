@@ -26,8 +26,9 @@ enum CAMERA_ERRCODE
 enum OPTION_READ_MODE
 {
 	OPT_READ_ALL			= 0,
-	OPT_READ_OPEN			= 1,
-	OPT_READ_PLAY			= 2
+	OPT_READ_CAM			= 1,
+	OPT_READ_PLAY			= 2,
+	OPT_READ_LIGHT			= 3
 };
 #pragma once
 

@@ -4,6 +4,7 @@
 
 #pragma once
 #include "CrevisCtrl.h"
+#include "LightCtrl.h"
 #include "Small_StudioDlg.h"
 #include "Small_Studio.h"
 #include "OptionDlg.h"
@@ -55,23 +56,27 @@ public:
 	bool			m_IsSystemInit;		// Camera SDK Init 상태 점검입니다.
 	BOOL			m_IsOpen[MAXCAM];	// 카메라 Open 여부
 	BOOL			m_IsPlay[MAXCAM];	// Play 여부 (Grab & Show)
+	BOOL			m_IsSerialOpen;
 	CCrevisCtrl*	m_pCamCtrl[MAXCAM]; // 카메라용 Class 객체 포인터입니다. 
 	INT32			m_statusCode;		// 프로그램 에러 코드를 저장하는 변수입니다.
 	CString			m_strErr;			// 출력할 에러 String입니다
 
 	CString			m_optionPath;		// option.ini 파일의 path (초기 실행시 한 번만 받아옴)
 
+	BYTE*			m_Bit[MAXCAM];		// 이미지버퍼
 	HBITMAP			m_hBmp[MAXCAM];
 	CImage*			m_pCOriImage[MAXCAM]; // 이미지 객체
+	CLightCtrl*		m_pLightCtrl;
 
-	//option.ini 파일에서 read할 변수 20201103 장한결
+	//option.ini 파일에서 read 할 변수 20201103 장한결
 	CString			m_ComPort;			// 조명 Controller에서 사용할 port number입니다.
 	CString			m_BaudRate;			// 조명 Controller에서 사용할 baud rate입니다.
+	CString			m_OptionBright[LIGHTCH];
 	CString			m_CamIP[MAXCAM];	// IP 주소 String입니다.
 	DOUBLE			m_CamExposure[MAXCAM]; // Exposure time입니다.
 	INT32			m_CamTrig[MAXCAM]; // 카메라의 Trigger mode 입니다.
-
-
+	CString			m_CamLightCh[MAXCAM]; // 카메라 별 사용할 Light Channel number입니다.
 
 	CRITICAL_SECTION mSc;
+	afx_msg void OnBnClickedDebugdragon();
 };

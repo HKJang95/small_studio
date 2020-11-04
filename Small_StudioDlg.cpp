@@ -55,17 +55,27 @@ CSmall_StudioDlg::CSmall_StudioDlg(CWnd* pParent /*=NULL*/)
 	, m_statusCode(-99999)
 	, m_strErr(_T(""))
 	, m_optionPath(_T(""))
+	, m_pLightCtrl(NULL)
+	, m_BaudRate(_T(""))
+	, m_ComPort(_T(""))
+	, m_IsSerialOpen(FALSE)
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 
 	for (int i = 0; i < MAXCAM; i++)
 	{
+		m_Bit[i] = NULL;
 		m_pCOriImage[i] = NULL;
 		m_pCamCtrl[i] = NULL;
 		m_CamIP[i] = _T("");
 		m_CamExposure[i] = 0.0;
 		m_IsOpen[i] = FALSE;
 		m_IsPlay[i] = FALSE;
+	}
+
+	for (int i = 0; i < LIGHTCH; i++)
+	{
+		m_OptionBright[i] = _T("");
 	}
 }
 
@@ -85,6 +95,7 @@ BEGIN_MESSAGE_MAP(CSmall_StudioDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_CAM1PLAY, &CSmall_StudioDlg::OnBnClickedCam1play)
 	ON_BN_CLICKED(IDC_CAM2PLAY, &CSmall_StudioDlg::OnBnClickedCam2play)
 	ON_WM_DESTROY()
+	ON_BN_CLICKED(IDC_DEBUGDRAGON, &CSmall_StudioDlg::OnBnClickedDebugdragon)
 END_MESSAGE_MAP()
 
 
@@ -248,7 +259,7 @@ void CSmall_StudioDlg::OnBnClickedCam1open()
 {
 	GetDlgItem(IDC_CAM1OPEN)->EnableWindow(FALSE);
 	// Option.ini 파일을 읽어 Open시 필요한 정보를 읽습니다.
-	GetOptionValue(OPT_READ_OPEN, 0);
+	GetOptionValue(OPT_READ_CAM, 0);
 	if (!m_IsOpen[0])
 	{
 		if (camOpenSeq(0))
@@ -277,7 +288,7 @@ void CSmall_StudioDlg::OnBnClickedCam1open()
 void CSmall_StudioDlg::OnBnClickedCam2open()
 {
 	GetDlgItem(IDC_CAM2OPEN)->EnableWindow(FALSE);
-	GetOptionValue(OPT_READ_OPEN, 1);
+	GetOptionValue(OPT_READ_CAM, 1);
 	if (!m_IsOpen[1])
 	{
 		if (camOpenSeq(1))
@@ -341,9 +352,25 @@ void CSmall_StudioDlg::OnBnClickedOptionbtn()
 	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
 }
 
-
+// Light Open 버튼 구현 20201104 장한결
 void CSmall_StudioDlg::OnBnClickedLightopen()
 {
+	m_pLightCtrl = new CLightCtrl(m_ComPort, m_BaudRate, _T("None"), _T("8 Bit"), _T("1 Bit"));
+
+	if (m_pLightCtrl->Create(GetSafeHwnd()) != 0)
+	{
+		m_pLightCtrl->Clear();
+	}
+	else
+	{
+		AfxMessageBox(_T("Light Controller Connection FAIL!"));
+		m_IsSerialOpen = FALSE;
+
+		GetDlgItem(IDC_LIGHTOPEN)->SetWindowTextW(_T("Light Closed"));
+		return;
+	}
+	m_IsSerialOpen = TRUE;
+	GetDlgItem(IDC_LIGHTOPEN)->SetWindowTextW(_T("Light Open"));
 	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
 }
 
@@ -428,7 +455,22 @@ BOOL CSmall_StudioDlg::GetOptionValue(int mode)
 			str.Format(_T("%d"), CAMERA_TRIG_SW);
 			GetPrivateProfileStringW(camnum, _T("GRAB_MODE"), str, cBuf, 256, m_optionPath);
 			m_CamTrig[i] = _ttoi(cBuf);
+			GetPrivateProfileStringW(camnum, _T("LIGHTCH"), str, cBuf, 256, m_optionPath);
+			m_CamLightCh[i] = cBuf;
 		}
+		GetPrivateProfileStringW(_T("LLIGHT4CH"), _T("PORT"), _T(""), cBuf, 256, m_optionPath);
+		m_ComPort = cBuf;
+		GetPrivateProfileStringW(_T("LLIGHT4CH"), _T("BAUD"), _T(""), cBuf, 256, m_optionPath);
+		m_BaudRate = cBuf;
+
+		CString chnum;
+		for (int i = 0; i < LIGHTCH; i++)
+		{
+			chnum.Format(_T("CH%d"), i+1);
+			GetPrivateProfileStringW(_T("LLIGHT4CH"), chnum, _T(""), cBuf, 256, m_optionPath);
+			m_OptionBright[i] = cBuf;
+		}
+
 		delete cBuf;
 	}
 	else
@@ -450,7 +492,7 @@ BOOL CSmall_StudioDlg::GetOptionValue(int mode, int dispNum)
 	camnum.Format(_T("CAMERA%d"), dispNum + 1);
 	CString str;
 	str.Format(_T("%d"), CAMERA_TRIG_SW);
-	if (mode == OPT_READ_OPEN)
+	if (mode == OPT_READ_CAM)
 	{
 		GetPrivateProfileStringW(camnum, _T("IP"), _T(""), cBuf, 256, m_optionPath);
 		m_CamIP[dispNum] = cBuf;
@@ -466,6 +508,13 @@ BOOL CSmall_StudioDlg::GetOptionValue(int mode, int dispNum)
 		GetPrivateProfileStringW(camnum, _T("GRAB_MODE"), str, cBuf, 256, m_optionPath);
 		m_CamTrig[dispNum] = _ttoi(cBuf);
 	}
+	else if (mode == OPT_READ_LIGHT)
+	{
+		GetPrivateProfileStringW(_T("LLIGHT4CH"), _T("PORT"), _T(""), cBuf, 256, m_optionPath);
+		m_ComPort = cBuf;
+		GetPrivateProfileStringW(_T("LLIGHT4CH"), _T("BAUD"), _T(""), cBuf, 256, m_optionPath);
+		m_BaudRate = cBuf;
+	}
 	else
 	{
 		return FALSE;
@@ -480,6 +529,7 @@ BOOL CSmall_StudioDlg::DrawImageSeq(int dispNum)
 	{
 		::EnterCriticalSection(&mSc);
 		m_pCamCtrl[dispNum]->GrabImageSW();
+		DIBMake(dispNum);
 		m_pCOriImage[dispNum] = new CImage();
 		hbitmap2CImage(dispNum);
 
@@ -497,7 +547,7 @@ BOOL CSmall_StudioDlg::DrawImageSeq(int dispNum)
 
 		::LeaveCriticalSection(&mSc);
 
-		DIBMake(dispNum);
+	
 	}
 	else if (m_CamTrig[dispNum] == CAMERA_TRIG_CONTINUOUS)
 	{
@@ -511,7 +561,21 @@ BOOL CSmall_StudioDlg::DrawImageSeq(int dispNum)
 // 아마.. viewer를 구현하면 여기다 하게 될 듯? 아니면 MemDC로 수정하는 부분 따로 만들던가
 BOOL CSmall_StudioDlg::DIBMake(int dispNum)
 {
+	CString debug;
+	for (int i = 0; i < 10; i++)
+	{
+		debug.Format(_T("%d"), m_pCamCtrl[dispNum]->m_pImage[i]);
+		OutputDebugString(debug);
+	}
+
+	OutputDebugString(_T("\n\n"));
 	HDC hDC = ::GetDC(NULL);
+
+	for (int i = 0; i < 10; i++)
+	{
+		debug.Format(_T("%d"), m_pCamCtrl[dispNum]->m_pImage[i]);
+	}
+	OutputDebugString(_T("\n\n"));
 
 	BITMAPINFO bmi;
 	memset(&bmi, 0, sizeof(BITMAPINFO));
@@ -538,14 +602,21 @@ BOOL CSmall_StudioDlg::hbitmap2CImage(int dispNum)
 
 		for (int i = 0; i < 10; i++)
 		{
-			for (int j = 0; j < 10; j++)
-			{
-				ref = m_pCOriImage[dispNum]->GetPixel(i, j);
-				debug.Format(_T("%d"), ref);
-			}
+			debug.Format(_T("%d"), m_pCamCtrl[dispNum]->m_pImage[i]);
 		}
-		
+		OutputDebugString(_T("\n\n"));
+		for (int i = 0; i < 10; i++)
+		{
+			ref = m_pCOriImage[dispNum]->GetPixel(i, 0);
+			debug.Format(_T("%d"), ref);
+		}
+		OutputDebugString(_T("\n\n"));
 	}
 
 	return TRUE;
+}
+
+void CSmall_StudioDlg::OnBnClickedDebugdragon()
+{
+	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
 }
