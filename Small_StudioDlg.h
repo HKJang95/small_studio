@@ -49,7 +49,7 @@ private:
 	BOOL			GetOptionValue(int mode, int dispNum);
 	BOOL			DrawImageSeq(int dispNum);
 	BOOL			DIBMake(int dispNum);
-	BOOL			Bytes2Image(BYTE* bytes, int byteSize, CImage* img);
+	BOOL			hbitmap2CImage(int dispNum);
 
 public:
 	bool			m_IsSystemInit;		// Camera SDK Init 상태 점검입니다.
@@ -62,7 +62,7 @@ public:
 	CString			m_optionPath;		// option.ini 파일의 path (초기 실행시 한 번만 받아옴)
 
 	HBITMAP			m_hBmp[MAXCAM];
-	CBitmap*		m_pCOriImage[MAXCAM]; // 이미지 객체
+	CImage*			m_pCOriImage[MAXCAM]; // 이미지 객체
 
 	//option.ini 파일에서 read할 변수 20201103 장한결
 	CString			m_ComPort;			// 조명 Controller에서 사용할 port number입니다.

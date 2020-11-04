@@ -222,7 +222,8 @@ BOOL CSmall_StudioDlg::camOpenSeq(int dispNum)
 	m_statusCode = m_pCamCtrl[dispNum]->OpenDevice();
 	m_strErr.Format(_T("!!!!!!!!!!!!!!!!!!!!! DEBUG %d Cam status : %d !!!!!!!!!!!!!!!!!\n"), dispNum, m_statusCode);
 	OutputDebugString(m_strErr);
-	m_pCamCtrl[dispNum]->TriggerSet(m_CamTrig[dispNum]);
+	// m_pCamCtrl[dispNum]->TriggerSet(m_CamTrig[dispNum]);
+	m_pCamCtrl[dispNum]->SetSWTrigger();
 	if (m_statusCode != CAMERA_OPEN_SUCCESS)
 	{
 		delete m_pCamCtrl[dispNum];
@@ -482,10 +483,11 @@ BOOL CSmall_StudioDlg::DrawImageSeq(int dispNum)
 		m_pCamCtrl[dispNum]->GrabImageSW();
 		
 		DIBMake(dispNum);
+		m_pCOriImage[dispNum] = new CImage();
+		hbitmap2CImage(dispNum);
 
 		if (dispNum == 0)
 		{
-			
 		}
 		else if (dispNum == 1)
 		{
@@ -506,27 +508,42 @@ BOOL CSmall_StudioDlg::DrawImageSeq(int dispNum)
 	return TRUE;
 }
 
+// 이미지를 hbitmap으로 20201104 장한결
+// 아마.. viewer를 구현하면 여기다 하게 될 듯? 아니면 MemDC로 수정하는 부분 따로 만들던가
 BOOL CSmall_StudioDlg::DIBMake(int dispNum)
 {
 	HDC hDC = ::GetDC(NULL);
 
 	BITMAPINFO bmi;
 	memset(&bmi, 0, sizeof(BITMAPINFO));
-	bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
-	bmi.bmiHeader.biWidth = m_pCamCtrl[dispNum]->m_camWidth;
-	bmi.bmiHeader.biHeight = m_pCamCtrl[dispNum]->m_camHeight;
-	bmi.bmiHeader.biPlanes = 1;
-	bmi.bmiHeader.biBitCount = 8;
-	bmi.bmiHeader.biCompression = BI_RGB;
+	bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);		
+	bmi.bmiHeader.biWidth = m_pCamCtrl[dispNum]->m_camWidth;	// Cam에서 얻어온 Width
+	bmi.bmiHeader.biHeight = m_pCamCtrl[dispNum]->m_camHeight;	// Cam에서 얻어온 Height
+	bmi.bmiHeader.biPlanes = 1;									// ?
+	bmi.bmiHeader.biBitCount = 8;								// 8bpp
+	bmi.bmiHeader.biCompression = BI_RGB;						// RGB Raw data이므로
+	// CreateDIBSection으로 HBITMAP 생성
 	m_hBmp[dispNum] = CreateDIBSection(hDC, &bmi, DIB_RGB_COLORS, (void**)&(m_pCamCtrl[dispNum]->m_pImage), NULL, NULL);
 
+	for (int i = 500; i < 540; i++)
+	{
+		CString debug;
+		debug.Format(_T("%d\n"), m_pCamCtrl[dispNum]->m_pImage[i]);
+		OutputDebugString(debug);
+	}
+	
 	::ReleaseDC(NULL, hDC);
-	CImage test;
-	test.Attach(*m_hBmp);
-	CString teststr;
+	((CStatic *)GetDlgItem(IDC_PIC1))->SetBitmap(m_hBmp[dispNum]);
+	return TRUE;
+}
 
-	teststr.Format(_T("%d"), test.GetHeight());
-	OutputDebugString(teststr);
+BOOL CSmall_StudioDlg::hbitmap2CImage(int dispNum)
+{
+	if (!m_pCOriImage[dispNum]->IsNull())
+	{
+		m_pCOriImage[dispNum]->Destroy();
+		m_pCOriImage[dispNum]->Attach(m_hBmp[dispNum]);
+	}
 
 	return TRUE;
 }
