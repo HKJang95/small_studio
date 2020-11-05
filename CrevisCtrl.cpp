@@ -19,7 +19,7 @@ CCrevisCtrl::CCrevisCtrl(CString InputIP)
 // 소멸자 생성 시 카메라 Close를 해주지 않았다면 자동으로 Close를 진행합니다. 20201029 장한결
 CCrevisCtrl::~CCrevisCtrl()
 {
-	
+	CloseDevice();
 }
 
 CAMERA_ERRCODE CCrevisCtrl::GetTriggerStatus()
@@ -312,6 +312,23 @@ BOOL CCrevisCtrl::GrabImageSW()
 		Sleep(1);
 
 		m_status = ST_GrabImageAsync(m_hDevice, m_pImage, m_bufferSize, -1);
+		if (m_status != MCAM_ERR_SUCCESS)
+		{
+			return FALSE;
+		}
+		return TRUE;
+	}
+	else
+	{
+		return FALSE;
+	}
+}
+
+BOOL CCrevisCtrl::GrabImageContinuous()
+{
+	if (m_IsDeviceOpen)
+	{
+		m_status = ST_GrabImage(m_hDevice, m_pImage, m_bufferSize);
 		if (m_status != MCAM_ERR_SUCCESS)
 		{
 			return FALSE;

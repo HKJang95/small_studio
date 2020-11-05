@@ -16,6 +16,10 @@
 
 // 응용 프로그램 정보에 사용되는 CAboutDlg 대화 상자입니다.
 
+void ContinuousThreadProc(CSmall_StudioDlg* pPrivate)
+{
+}
+
 class CAboutDlg : public CDialogEx
 {
 public:
@@ -64,7 +68,7 @@ CSmall_StudioDlg::CSmall_StudioDlg(CWnd* pParent /*=NULL*/)
 
 	for (int i = 0; i < MAXCAM; i++)
 	{
-		m_Bit[i] = NULL;
+//		m_Bit[i] = NULL;
 		m_pCOriImage[i] = NULL;
 		m_pCamCtrl[i] = NULL;
 		m_CamIP[i] = _T("");
@@ -106,6 +110,11 @@ BOOL CSmall_StudioDlg::OnInitDialog()
 	CDialogEx::OnInitDialog();
 	
 	::InitializeCriticalSection(&mSc);
+
+	for (int i = 0; i < MAXCAM; i++)
+	{
+		m_pCOriImage[i] = new CImage();
+	}
 	m_optionPath.Format(_T("%s\\option.ini"), GetExePath());
 	GetOptionValue(OPT_READ_ALL);
 
@@ -254,8 +263,6 @@ BOOL CSmall_StudioDlg::camOpenSeq(int dispNum)
 		return FALSE;
 	}
 	m_IsOpen[dispNum] = TRUE;
-
-	
 	return TRUE;
 }
 
@@ -280,7 +287,6 @@ void CSmall_StudioDlg::OnBnClickedCam1open()
 	}
 	else
 	{
-		m_pCamCtrl[0]->CloseDevice();
 		delete m_pCamCtrl[0];
 		m_pCamCtrl[0] = NULL;
 		m_IsOpen[0] = FALSE;
@@ -310,7 +316,6 @@ void CSmall_StudioDlg::OnBnClickedCam2open()
 	}
 	else
 	{
-		m_pCamCtrl[1]->CloseDevice();
 		delete m_pCamCtrl[1];
 		m_pCamCtrl[1] = NULL;
 		m_IsOpen[1] = FALSE;
@@ -419,12 +424,13 @@ void CSmall_StudioDlg::OnBnClickedCam1play()
 		GetDlgItem(IDC_CAM1PLAY)->SetWindowTextW(_T("Play"));
 		m_IsPlay[0] = FALSE;
 	}
+
 	else
 	{
 		m_IsPlay[0] = TRUE;
 		GetDlgItem(IDC_CAM1PLAY)->SetWindowTextW(_T("Stop"));
 		DrawImageSeq(0);
-	} // SW Trigger일때만 적용됨 현재는
+	} // SW Trigger 일 때만 적용됨 현재는
 
 	
 	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
@@ -575,17 +581,21 @@ BOOL CSmall_StudioDlg::DrawImageSeq(int dispNum)
 	if (m_CamTrig[dispNum] == CAMERA_TRIG_SW)
 	{
 		::EnterCriticalSection(&mSc);
+		LightSend(dispNum, TRUE);
 		m_pCamCtrl[dispNum]->GrabImageSW();
+		Sleep(5);
+		LightSend(dispNum, FALSE);
 		DIBMake(dispNum);
-		m_pCOriImage[dispNum] = new CImage();
+		
 		hbitmap2CImage(dispNum);
 
 		if (dispNum == 0)
 		{
+			GetDlgItem(IDC_CAM1PLAY)->SetWindowTextW(_T("Play"));
 		}
 		else if (dispNum == 1)
 		{
-
+			GetDlgItem(IDC_CAM2PLAY)->SetWindowTextW(_T("Play"));
 		}
 		else
 		{
@@ -598,7 +608,11 @@ BOOL CSmall_StudioDlg::DrawImageSeq(int dispNum)
 	}
 	else if (m_CamTrig[dispNum] == CAMERA_TRIG_CONTINUOUS)
 	{
-
+		::EnterCriticalSection(&mSc);
+		m_pCamCtrl[dispNum]->GrabImageContinuous();
+		DIBMake(dispNum);
+		hbitmap2CImage(dispNum);
+		::LeaveCriticalSection(&mSc);
 	}
 
 	return TRUE;
@@ -673,8 +687,41 @@ void CSmall_StudioDlg::OnBnClickedDebugdragon()
 	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
 }
 
-BOOL CSmall_StudioDlg::LightSend(int dispNum)
+// dispNum번에 해당하는 카메라 객체 전용 조명 컨트롤러 명령 송신기
+// OnOff TRUE : Option에서 설정된 밝기로 개별 Channel 제어 프로토콜 송신
+// OnOff FALSE : 밝기 0으로 개별 Channel 제어 프로토콜 송신. 20201105 장한결
+BOOL CSmall_StudioDlg::LightSend(int dispNum, BOOL OnOff)
 {
 	char stx = 0x02;
 	char etx = 0x03;
+	CString sendASCII;
+	CString middle;
+	INT32 chan = _ttoi(m_CamLightCh[dispNum]);
+	if (m_pLightCtrl != NULL)
+	{
+		if (OnOff)
+		{
+			middle.Format(_T("CH%sS%s"), m_CamLightCh[dispNum], m_OptionBright[chan]);
+			sendASCII = (CString)(stx + middle + etx);
+			if (m_pLightCtrl->Send(sendASCII))
+			{
+				return TRUE;
+			}
+			return FALSE;
+		}
+		else
+		{
+			middle.Format(_T("CH%sS000"), m_CamLightCh[dispNum]);
+			sendASCII = (CString)(stx + middle + etx);
+			if (m_pLightCtrl->Send(sendASCII))
+			{
+				return TRUE;
+			}
+			return FALSE;
+		}
+	}
+	else
+	{
+		return FALSE;
+	}
 }

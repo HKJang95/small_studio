@@ -17,6 +17,7 @@ public:
 	BOOL			TriggerOff();
 	BOOL			GrabImageSW();
 	BOOL			SetSWTrigger();
+	BOOL			GrabImageContinuous();
 
 private:
 	CAMERA_ERRCODE	GetTriggerStatus();

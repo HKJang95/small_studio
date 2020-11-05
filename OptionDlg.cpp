@@ -215,7 +215,7 @@ void COptionDlg::OnDestroy()
 
 void COptionDlg::OnBnClickedLtestbtn()
 {
-	CString sendASCII;
+	CString checkProtocol;
 	char stx = 0x02;
 	char etx = 0x03;
 	INT32 brightness[LIGHTCH] = { 0 };
@@ -243,14 +243,18 @@ void COptionDlg::OnBnClickedLtestbtn()
 		}
 	}
 
-	sendASCII.Format(_T("CHAS%s%s%s%s"), m_OptionBright[0], m_OptionBright[1], m_OptionBright[2], m_OptionBright[3]);
+	checkProtocol.Format(_T("CHAS%s%s%s%s"), m_OptionBright[0], m_OptionBright[1], m_OptionBright[2], m_OptionBright[3]);
 
-	CString checkProtocol = (CString)(stx + sendASCII + etx);
-	GetDlgItem(IDC_LTESTSEND)->SetWindowText(checkProtocol);
+	CString sendASCII = (CString)(stx + checkProtocol + etx);
+	GetDlgItem(IDC_LTESTSEND)->SetWindowText(sendASCII);
 
 	if (m_pLightCtrl != NULL)
 	{
-		m_pLightCtrl->Send(checkProtocol);
+		m_pLightCtrl->Send(sendASCII);
+		Sleep(1000);
+		checkProtocol.Format(_T("CHAS000000000000"));
+		sendASCII = (CString)(stx + checkProtocol + etx);
+		m_pLightCtrl->Send(sendASCII);
 	}
 	else
 	{

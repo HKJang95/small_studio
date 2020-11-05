@@ -52,7 +52,7 @@ private:
 	BOOL			DIBMake(int dispNum);
 	BOOL			hbitmap2CImage(int dispNum);
 	BOOL			LightCtrl(int dispNum);
-	BOOL			LightSend(int dispNum);
+	BOOL			LightSend(int dispNum, BOOL OnOff);
 
 public:
 	bool			m_IsSystemInit;		// Camera SDK Init 상태 점검입니다.
@@ -65,7 +65,7 @@ public:
 
 	CString			m_optionPath;		// option.ini 파일의 path (초기 실행시 한 번만 받아옴)
 
-	BYTE*			m_Bit[MAXCAM];		// 이미지버퍼
+	// BYTE*			m_Bit[MAXCAM];		// 이미지버퍼
 	HBITMAP			m_hBmp[MAXCAM];
 	CImage*			m_pCOriImage[MAXCAM]; // 이미지 객체
 	CLightCtrl*		m_pLightCtrl;		 // Serial port Control용 객체
