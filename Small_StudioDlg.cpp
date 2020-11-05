@@ -201,6 +201,11 @@ HCURSOR CSmall_StudioDlg::OnQueryDragIcon()
 void CSmall_StudioDlg::OnDestroy()
 {
 	CDialogEx::OnDestroy();
+	if (m_pLightCtrl != NULL)
+	{
+		delete m_pLightCtrl;
+	}
+
 	for (int i = 0; i < MAXCAM; i++)
 	{
 		if (m_IsOpen[i])
@@ -275,6 +280,7 @@ void CSmall_StudioDlg::OnBnClickedCam1open()
 	}
 	else
 	{
+		m_pCamCtrl[0]->CloseDevice();
 		delete m_pCamCtrl[0];
 		m_pCamCtrl[0] = NULL;
 		m_IsOpen[0] = FALSE;
@@ -304,6 +310,7 @@ void CSmall_StudioDlg::OnBnClickedCam2open()
 	}
 	else
 	{
+		m_pCamCtrl[1]->CloseDevice();
 		delete m_pCamCtrl[1];
 		m_pCamCtrl[1] = NULL;
 		m_IsOpen[1] = FALSE;
@@ -324,18 +331,40 @@ void CSmall_StudioDlg::OnBnClickedOptionbtn()
 		optiondlg.m_CamIP[i] = m_CamIP[i];
 		optiondlg.m_CamExposure[i].Format(_T("%lf"), m_CamExposure[i]);
 		optiondlg.m_CamTrig[i].Format(_T("%d"), m_CamTrig[i]);
+		optiondlg.m_CamLightCh[i] = m_CamLightCh[i];
 	}
+
+	for (int i = 0; i < LIGHTCH; i++)
+	{
+		optiondlg.m_OptionBright[i] = m_OptionBright[i];
+	}
+
+	optiondlg.m_BaudRate = m_BaudRate;
+	optiondlg.m_ComPort = m_ComPort;
 	optiondlg.m_optionPath = m_optionPath;
+
+	if (m_pLightCtrl != NULL)
+	{
+		optiondlg.m_pLightCtrl = m_pLightCtrl;
+	}
+	else
+	{
+		optiondlg.m_pLightCtrl = NULL;
+	}
+
 	if (IDOK == optiondlg.DoModal())
 	{
 		// 옵션 setting 완료시. ini에 저장된 값 프로그램에도 반영. 20201103 장한결
+
+		// 카메라 옵션 반영 20201105 장한결
 		for (int i = 0; i < MAXCAM; i++)
 		{
 			// 기타 값들은 Replay시 혹은 ReOpen시 반영 20201103 장한결
 			m_CamIP[i] = optiondlg.m_CamIP[i];
 			m_CamExposure[i] = _ttof(optiondlg.m_CamExposure[i]);
 			m_CamTrig[i] = _ttoi(optiondlg.m_CamTrig[i]);
-			CString strErr;
+			m_CamLightCh[i] = optiondlg.m_CamLightCh[i];
+
 			if (m_pCamCtrl[i] != NULL)
 			{
 				// Exposure time의 경우 바로 반영됩니다. 20201103 장한결
@@ -347,6 +376,14 @@ void CSmall_StudioDlg::OnBnClickedOptionbtn()
 					}
 				}
 			}
+		}
+
+		// 조명 옵션 반영 20201105 장한결
+		m_BaudRate = optiondlg.m_BaudRate;
+		m_ComPort = optiondlg.m_ComPort;
+		for (int i = 0; i < LIGHTCH; i++)
+		{
+			m_OptionBright[i] = optiondlg.m_OptionBright[i];
 		}
 	}
 	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
@@ -363,7 +400,7 @@ void CSmall_StudioDlg::OnBnClickedLightopen()
 	}
 	else
 	{
-		AfxMessageBox(_T("Light Controller Connection FAIL!"));
+		AfxMessageBox(_T("조명 Controller 연결 실패!"));
 		m_IsSerialOpen = FALSE;
 
 		GetDlgItem(IDC_LIGHTOPEN)->SetWindowTextW(_T("Light Closed"));
@@ -455,19 +492,19 @@ BOOL CSmall_StudioDlg::GetOptionValue(int mode)
 			str.Format(_T("%d"), CAMERA_TRIG_SW);
 			GetPrivateProfileStringW(camnum, _T("GRAB_MODE"), str, cBuf, 256, m_optionPath);
 			m_CamTrig[i] = _ttoi(cBuf);
-			GetPrivateProfileStringW(camnum, _T("LIGHTCH"), str, cBuf, 256, m_optionPath);
+			GetPrivateProfileStringW(camnum, _T("LIGHTCH"), _T("1"), cBuf, 256, m_optionPath);
 			m_CamLightCh[i] = cBuf;
 		}
-		GetPrivateProfileStringW(_T("LLIGHT4CH"), _T("PORT"), _T(""), cBuf, 256, m_optionPath);
+		GetPrivateProfileStringW(_T("LLIGHT4CH"), _T("PORT"), _T("COM1"), cBuf, 256, m_optionPath);
 		m_ComPort = cBuf;
-		GetPrivateProfileStringW(_T("LLIGHT4CH"), _T("BAUD"), _T(""), cBuf, 256, m_optionPath);
+		GetPrivateProfileStringW(_T("LLIGHT4CH"), _T("BAUD"), _T("300"), cBuf, 256, m_optionPath);
 		m_BaudRate = cBuf;
 
 		CString chnum;
 		for (int i = 0; i < LIGHTCH; i++)
 		{
 			chnum.Format(_T("CH%d"), i+1);
-			GetPrivateProfileStringW(_T("LLIGHT4CH"), chnum, _T(""), cBuf, 256, m_optionPath);
+			GetPrivateProfileStringW(_T("LLIGHT4CH"), chnum, _T("0"), cBuf, 256, m_optionPath);
 			m_OptionBright[i] = cBuf;
 		}
 
@@ -490,8 +527,12 @@ BOOL CSmall_StudioDlg::GetOptionValue(int mode, int dispNum)
 	cBuf = new WCHAR[256];
 	CString camnum;
 	camnum.Format(_T("CAMERA%d"), dispNum + 1);
+	CString chnum;
+
+
 	CString str;
 	str.Format(_T("%d"), CAMERA_TRIG_SW);
+	// Cam Open시 Read
 	if (mode == OPT_READ_CAM)
 	{
 		GetPrivateProfileStringW(camnum, _T("IP"), _T(""), cBuf, 256, m_optionPath);
@@ -501,13 +542,19 @@ BOOL CSmall_StudioDlg::GetOptionValue(int mode, int dispNum)
 		GetPrivateProfileStringW(camnum, _T("GRAB_MODE"), str, cBuf, 256, m_optionPath);
 		m_CamTrig[dispNum] = _ttoi(cBuf);
 	}
+	// Play button시 read
 	else if (mode == OPT_READ_PLAY)
 	{
 		GetPrivateProfileStringW(camnum, _T("Exposure"), _T("50000"), cBuf, 256, m_optionPath);
 		m_CamExposure[dispNum] = _ttof(cBuf);
 		GetPrivateProfileStringW(camnum, _T("GRAB_MODE"), str, cBuf, 256, m_optionPath);
 		m_CamTrig[dispNum] = _ttoi(cBuf);
+		GetPrivateProfileStringW(camnum, _T("LIGHTCH"), _T("1"), cBuf, 256, m_optionPath);
+		m_CamLightCh[dispNum] = cBuf;
+		GetPrivateProfileStringW(_T("LLIGHT4CH"), m_CamLightCh[dispNum], _T("0"), cBuf, 256, m_optionPath);
+		m_OptionBright[dispNum] = cBuf;
 	}
+	// Light open시 read
 	else if (mode == OPT_READ_LIGHT)
 	{
 		GetPrivateProfileStringW(_T("LLIGHT4CH"), _T("PORT"), _T(""), cBuf, 256, m_optionPath);
@@ -561,6 +608,7 @@ BOOL CSmall_StudioDlg::DrawImageSeq(int dispNum)
 // 아마.. viewer를 구현하면 여기다 하게 될 듯? 아니면 MemDC로 수정하는 부분 따로 만들던가
 BOOL CSmall_StudioDlg::DIBMake(int dispNum)
 {
+	OutputDebugString(_T("before getDC\n"));
 	CString debug;
 	for (int i = 0; i < 10; i++)
 	{
@@ -570,16 +618,17 @@ BOOL CSmall_StudioDlg::DIBMake(int dispNum)
 
 	OutputDebugString(_T("\n\n"));
 	HDC hDC = ::GetDC(NULL);
-
+	OutputDebugString(_T("after getDC\n"));
 	for (int i = 0; i < 10; i++)
 	{
 		debug.Format(_T("%d"), m_pCamCtrl[dispNum]->m_pImage[i]);
+		OutputDebugString(debug);
 	}
 	OutputDebugString(_T("\n\n"));
 
 	BITMAPINFO bmi;
 	memset(&bmi, 0, sizeof(BITMAPINFO));
-	bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);		
+	bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
 	bmi.bmiHeader.biWidth = m_pCamCtrl[dispNum]->m_camWidth;	// Cam에서 얻어온 Width
 	bmi.bmiHeader.biHeight = m_pCamCtrl[dispNum]->m_camHeight;	// Cam에서 얻어온 Height
 	bmi.bmiHeader.biPlanes = 1;									// ?
@@ -596,22 +645,25 @@ BOOL CSmall_StudioDlg::hbitmap2CImage(int dispNum)
 	if (!m_pCOriImage[dispNum]->IsNull())
 	{
 		m_pCOriImage[dispNum]->Destroy();
-		m_pCOriImage[dispNum]->Attach(m_hBmp[dispNum]);
-		COLORREF ref;
-		CString debug;
-
-		for (int i = 0; i < 10; i++)
-		{
-			debug.Format(_T("%d"), m_pCamCtrl[dispNum]->m_pImage[i]);
-		}
-		OutputDebugString(_T("\n\n"));
-		for (int i = 0; i < 10; i++)
-		{
-			ref = m_pCOriImage[dispNum]->GetPixel(i, 0);
-			debug.Format(_T("%d"), ref);
-		}
-		OutputDebugString(_T("\n\n"));
 	}
+	m_pCOriImage[dispNum]->Attach(m_hBmp[dispNum]);
+	COLORREF ref;
+	CString debug;
+	OutputDebugString(_T("cimage attach\n"));
+	for (int i = 0; i < 10; i++)
+	{
+		debug.Format(_T("%d"), m_pCamCtrl[dispNum]->m_pImage[i]);
+		OutputDebugString(debug);
+	}
+	OutputDebugString(_T("\n\n"));
+	OutputDebugString(_T("cimage getpixel\n"));
+	for (int i = 0; i < 10; i++)
+	{
+		ref = m_pCOriImage[dispNum]->GetPixel(i, 0);
+		debug.Format(_T("%d"), ref);
+		OutputDebugString(debug);
+	}
+	OutputDebugString(_T("\n\n"));
 
 	return TRUE;
 }
@@ -619,4 +671,10 @@ BOOL CSmall_StudioDlg::hbitmap2CImage(int dispNum)
 void CSmall_StudioDlg::OnBnClickedDebugdragon()
 {
 	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+}
+
+BOOL CSmall_StudioDlg::LightSend(int dispNum)
+{
+	char stx = 0x02;
+	char etx = 0x03;
 }

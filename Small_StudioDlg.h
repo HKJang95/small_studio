@@ -51,12 +51,14 @@ private:
 	BOOL			DrawImageSeq(int dispNum);
 	BOOL			DIBMake(int dispNum);
 	BOOL			hbitmap2CImage(int dispNum);
+	BOOL			LightCtrl(int dispNum);
+	BOOL			LightSend(int dispNum);
 
 public:
 	bool			m_IsSystemInit;		// Camera SDK Init 상태 점검입니다.
 	BOOL			m_IsOpen[MAXCAM];	// 카메라 Open 여부
 	BOOL			m_IsPlay[MAXCAM];	// Play 여부 (Grab & Show)
-	BOOL			m_IsSerialOpen;
+	BOOL			m_IsSerialOpen;		// Seiral Port Open여부
 	CCrevisCtrl*	m_pCamCtrl[MAXCAM]; // 카메라용 Class 객체 포인터입니다. 
 	INT32			m_statusCode;		// 프로그램 에러 코드를 저장하는 변수입니다.
 	CString			m_strErr;			// 출력할 에러 String입니다
@@ -66,7 +68,7 @@ public:
 	BYTE*			m_Bit[MAXCAM];		// 이미지버퍼
 	HBITMAP			m_hBmp[MAXCAM];
 	CImage*			m_pCOriImage[MAXCAM]; // 이미지 객체
-	CLightCtrl*		m_pLightCtrl;
+	CLightCtrl*		m_pLightCtrl;		 // Serial port Control용 객체
 
 	//option.ini 파일에서 read 할 변수 20201103 장한결
 	CString			m_ComPort;			// 조명 Controller에서 사용할 port number입니다.
