@@ -12,6 +12,7 @@ class COptionDlg : public CDialogEx
 	DECLARE_DYNAMIC(COptionDlg)
 
 public:
+	LRESULT	OnReceive(WPARAM length, LPARAM lpara);
 	COptionDlg(CWnd* pParent = NULL);   // 표준 생성자입니다.
 	virtual ~COptionDlg();
 

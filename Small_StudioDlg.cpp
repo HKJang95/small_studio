@@ -676,7 +676,7 @@ BOOL CSmall_StudioDlg::RawToGDIPBmp(int dispNum, int width, int height, BYTE* bu
 	BitmapData bitmapdata;
 	Rect rc;
 	ColorPalette* pPalette;
-	int size = 0;
+	int	size = 0;
 
 	if (m_pBitmap[dispNum] != NULL)
 	{
@@ -690,7 +690,7 @@ BOOL CSmall_StudioDlg::RawToGDIPBmp(int dispNum, int width, int height, BYTE* bu
 	memcpy(bitmapdata.Scan0, buffer, width*height);
 	m_pBitmap[dispNum]->UnlockBits(&bitmapdata);
 
-	int size = m_pBitmap[dispNum]->GetPaletteSize();
+	size = m_pBitmap[dispNum]->GetPaletteSize();
 	pPalette = new ColorPalette[size];
 	m_pBitmap[dispNum]->GetPalette(pPalette, size);
 	for (unsigned int i = 0; i < pPalette->Count; i++)
