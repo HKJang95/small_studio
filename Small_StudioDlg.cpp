@@ -223,7 +223,8 @@ void CSmall_StudioDlg::OnPaint()
 			{
 				if (m_IsPlay[i])
 				{
-					
+					m_pGraphics[i]->DrawImage(m_pBitmap[i], 0, 0, m_vidwidth[i], m_vidheight[i]);
+					break;
 				}
 			}
 		}
@@ -878,7 +879,6 @@ BOOL CSmall_StudioDlg::LightSend(int dispNum, BOOL OnOff)
 		return FALSE;
 	}
 }
-
 
 LRESULT	CSmall_StudioDlg::OnReceive(WPARAM length, LPARAM lpara)
 {
