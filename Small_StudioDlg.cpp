@@ -468,10 +468,7 @@ void CSmall_StudioDlg::OnBnClickedLightopen()
 			delete m_pLightCtrl;
 			m_pLightCtrl = NULL;
 		}
-		else
-		{
-			
-		}
+		GetDlgItem(IDC_LIGHTOPEN)->SetWindowTextW(_T("Light Closed"));
 		m_IsSerialOpen = FALSE;
 	}
 	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
@@ -856,7 +853,8 @@ LRESULT	CSmall_StudioDlg::OnReceive(WPARAM length, LPARAM lpara)
 	CString str;
 	char data[10000];
 	if (m_pLightCtrl && m_optionmodal)
-	{
+	{ 
+		Sleep(50);
 		m_pLightCtrl->Receive(data, (int)length);
 		data[length] = '\0';
 		str = data;
