@@ -251,11 +251,9 @@ void COptionDlg::OnBnClickedLtestbtn()
 	if (m_pLightCtrl != NULL)
 	{
 		m_pLightCtrl->Send(sendASCII);
-		Sleep(10);
 		checkProtocol.Format(_T("CHAS000000000000"));
 		sendASCII = (CString)(stx + checkProtocol + etx);
 		m_pLightCtrl->Send(sendASCII);
-		Sleep(10);
 	}
 	else
 	{
@@ -265,19 +263,3 @@ void COptionDlg::OnBnClickedLtestbtn()
 	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
 }
 
-
-LRESULT	COptionDlg::OnReceive(WPARAM length, LPARAM lpara)
-{
-	CString str;
-	char data[10000];
-	if (m_pLightCtrl)
-	{
-		m_pLightCtrl->Receive(data, (int)length);
-		data[length] = '\0';
-		str = data;
-		GetDlgItem(IDC_LTESTRCV)->SetWindowTextW(str);
-		str = "";
-	}
-
-	return 0;
-}

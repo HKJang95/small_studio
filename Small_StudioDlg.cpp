@@ -77,6 +77,7 @@ CSmall_StudioDlg::CSmall_StudioDlg(CWnd* pParent /*=NULL*/)
 		m_IsOpen[i] = FALSE;
 		m_IsPlay[i] = FALSE;
 		m_DrawCommand[i] = FALSE;
+		m_pBitmap[i] = NULL;
 
 	}
 
@@ -102,6 +103,7 @@ BEGIN_MESSAGE_MAP(CSmall_StudioDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_CAM1PLAY, &CSmall_StudioDlg::OnBnClickedCam1play)
 	ON_BN_CLICKED(IDC_CAM2PLAY, &CSmall_StudioDlg::OnBnClickedCam2play)
 	ON_WM_DESTROY()
+	ON_MESSAGE(WM_MYRECEIVE, OnReceive)
 	ON_BN_CLICKED(IDC_DEBUGDRAGON, &CSmall_StudioDlg::OnBnClickedDebugdragon)
 END_MESSAGE_MAP()
 
@@ -830,3 +832,20 @@ BOOL CSmall_StudioDlg::LightSend(int dispNum, BOOL OnOff)
 	}
 }
 
+
+LRESULT	CSmall_StudioDlg::OnReceive(WPARAM length, LPARAM lpara)
+{
+	CString str;
+	char data[10000];
+	if (m_pLightCtrl)
+	{
+		m_pLightCtrl->Receive(data, (int)length);
+		data[length] = '\0';
+		str = data;
+		AfxMessageBox(str);
+		GetDlgItem(IDC_LTESTRCV)->SetWindowTextW(str);
+		str = "";
+	}
+
+	return 0;
+}

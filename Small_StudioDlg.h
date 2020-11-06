@@ -54,6 +54,7 @@ private:
 	BOOL			LightCtrl(int dispNum);
 	BOOL			LightSend(int dispNum, BOOL OnOff);
 	BOOL			RawToGDIPBmp(int dispNum, int width, int height, BYTE* buffer);
+	LRESULT			OnReceive(WPARAM length, LPARAM lpara);
 
 public:
 	bool			m_IsSystemInit;		// Camera SDK Init 상태 점검입니다.
