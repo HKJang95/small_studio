@@ -64,6 +64,7 @@ CSmall_StudioDlg::CSmall_StudioDlg(CWnd* pParent /*=NULL*/)
 	, m_BaudRate(_T(""))
 	, m_ComPort(_T(""))
 	, m_IsSerialOpen(FALSE)
+	, m_optionmodal(FALSE)
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 
@@ -397,11 +398,11 @@ void CSmall_StudioDlg::OnBnClickedOptionbtn()
 	{
 		optiondlg.m_pLightCtrl = NULL;
 	}
-
+	m_optionmodal = TRUE;
 	if (IDOK == optiondlg.DoModal())
 	{
 		// 옵션 setting 완료시. ini에 저장된 값 프로그램에도 반영. 20201103 장한결
-
+		m_optionmodal = FALSE;
 		// 카메라 옵션 반영 20201105 장한결
 		for (int i = 0; i < MAXCAM; i++)
 		{
@@ -438,24 +439,41 @@ void CSmall_StudioDlg::OnBnClickedOptionbtn()
 // Light Open 버튼 구현 20201104 장한결
 void CSmall_StudioDlg::OnBnClickedLightopen()
 {
-	m_pLightCtrl = new CLightCtrl(m_ComPort, m_BaudRate, _T("None"), _T("8 Bit"), _T("1 Bit"));
-
-	if (m_pLightCtrl->Create(GetSafeHwnd()) != 0)
+	if (!m_IsSerialOpen)
 	{
-		m_pLightCtrl->Clear();
+		m_pLightCtrl = new CLightCtrl(m_ComPort, m_BaudRate, _T("None"), _T("8 Bit"), _T("1 Bit"));
+
+		if (m_pLightCtrl->Create(GetSafeHwnd()) != 0)
+		{
+			m_pLightCtrl->Clear();
+		}
+		else
+		{
+			AfxMessageBox(_T("조명 Controller 연결 실패!"));
+			m_IsSerialOpen = FALSE;
+
+			GetDlgItem(IDC_LIGHTOPEN)->SetWindowTextW(_T("Light Closed"));
+			delete m_pLightCtrl;
+			m_pLightCtrl = NULL;
+			return;
+		}
+		m_IsSerialOpen = TRUE;
+		GetDlgItem(IDC_LIGHTOPEN)->SetWindowTextW(_T("Light Open"));
 	}
 	else
 	{
-		AfxMessageBox(_T("조명 Controller 연결 실패!"));
+		m_pLightCtrl->Close();
+		if (!m_pLightCtrl->m_bIsOpenned)
+		{
+			delete m_pLightCtrl;
+			m_pLightCtrl = NULL;
+		}
+		else
+		{
+			
+		}
 		m_IsSerialOpen = FALSE;
-
-		GetDlgItem(IDC_LIGHTOPEN)->SetWindowTextW(_T("Light Closed"));
-		delete m_pLightCtrl;
-		m_pLightCtrl = NULL;
-		return;
 	}
-	m_IsSerialOpen = TRUE;
-	GetDlgItem(IDC_LIGHTOPEN)->SetWindowTextW(_T("Light Open"));
 	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
 }
 
@@ -837,7 +855,7 @@ LRESULT	CSmall_StudioDlg::OnReceive(WPARAM length, LPARAM lpara)
 {
 	CString str;
 	char data[10000];
-	if (m_pLightCtrl)
+	if (m_pLightCtrl && m_optionmodal)
 	{
 		m_pLightCtrl->Receive(data, (int)length);
 		data[length] = '\0';

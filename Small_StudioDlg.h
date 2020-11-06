@@ -83,6 +83,7 @@ public:
 	CRect			m_rcDisp[MAXCAM];
 	////////////////////////////////////////////////////////////////////////////////////////////////
 
+	BOOL			m_optionmodal;
 	//option.ini 파일에서 read 할 변수 20201103 장한결
 	CString			m_ComPort;			// 조명 Controller에서 사용할 port number입니다.
 	CString			m_BaudRate;			// 조명 Controller에서 사용할 baud rate입니다.
