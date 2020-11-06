@@ -71,7 +71,7 @@ CSmall_StudioDlg::CSmall_StudioDlg(CWnd* pParent /*=NULL*/)
 	for (int i = 0; i < MAXCAM; i++)
 	{
 		m_pBit[i] = NULL;
-		m_pCOriImage[i] = NULL;
+//		m_pCOriImage[i] = NULL;
 		m_pCamCtrl[i] = NULL;
 		m_CamIP[i] = _T("");
 		m_CamExposure[i] = 0.0;
@@ -119,7 +119,7 @@ BOOL CSmall_StudioDlg::OnInitDialog()
 
 	for (int i = 0; i < MAXCAM; i++)
 	{
-		m_pCOriImage[i] = new CImage();
+//		m_pCOriImage[i] = new CImage();
 
 		if (i == 0)
 		{
@@ -168,9 +168,6 @@ BOOL CSmall_StudioDlg::OnInitDialog()
 			pSysMenu->AppendMenu(MF_STRING, IDM_ABOUTBOX, strAboutMenu);
 		}
 	}
-
-
-
 
 	// 이 대화 상자의 아이콘을 설정합니다.  응용 프로그램의 주 창이 대화 상자가 아닐 경우에는
 	//  프레임워크가 이 작업을 자동으로 수행합니다.
@@ -246,15 +243,15 @@ void CSmall_StudioDlg::OnDestroy()
 			delete m_pCamCtrl[i];
 		}
 
-		if (m_pCOriImage[i] != NULL)
-		{
-			delete m_pCOriImage[i];
-		}
-		if (m_pBit[i] != NULL)
-		{
-			free(m_pBit[i]);
-			m_pBit[i] = NULL;
-		}
+//		if (m_pCOriImage[i] != NULL)
+//		{
+//			delete m_pCOriImage[i];
+//		}
+//		if (m_pBit[i] != NULL)
+//		{
+//			free(m_pBit[i]);
+//			m_pBit[i] = NULL;
+//		}
 
 		if (m_pBitmap[i] != NULL)
 		{
@@ -329,8 +326,8 @@ void CSmall_StudioDlg::OnBnClickedCam1open()
 		m_IsOpen[dispNum] = FALSE;
 		GetDlgItem(IDC_CAM1OPEN)->SetWindowTextW(_T("Camera 1 Closed"));
 		GetDlgItem(IDC_CAM1PLAY)->EnableWindow(FALSE);
-		free(m_pBit[dispNum]);
-		m_pBit[dispNum] = NULL;
+//		free(m_pBit[dispNum]);
+//		m_pBit[dispNum] = NULL;
 	}
 	GetDlgItem(IDC_CAM1OPEN)->EnableWindow(TRUE);
 }
@@ -361,8 +358,8 @@ void CSmall_StudioDlg::OnBnClickedCam2open()
 		m_IsOpen[dispNum] = FALSE;
 		GetDlgItem(IDC_CAM2OPEN)->SetWindowTextW(_T("Camera 2 Closed"));
 		GetDlgItem(IDC_CAM2PLAY)->EnableWindow(FALSE);
-		free(m_pBit[dispNum]);
-		m_pBit[dispNum] = NULL;
+//		free(m_pBit[dispNum]);
+//		m_pBit[dispNum] = NULL;
 	}
 	GetDlgItem(IDC_CAM2OPEN)->EnableWindow(TRUE);
 }
@@ -639,27 +636,30 @@ BOOL CSmall_StudioDlg::GetOptionValue(int mode, int dispNum)
 // 20201105 장한결
 BOOL CSmall_StudioDlg::DrawImageSeq(int dispNum)
 {
+	// Software Trigger
 	if (m_CamTrig[dispNum] == CAMERA_TRIG_SW)
 	{
 		::EnterCriticalSection(&mSc);
 		// 조명 On
+		m_IsPlay[dispNum] = TRUE;
 		LightSend(dispNum, TRUE);
 		// Image Grab
 		m_pCamCtrl[dispNum]->GrabImageSW();
 		// 실제 처리 (MemDC Draw 등) 완료된 Image 저장할 공간 alloc
-		if (m_pBit[dispNum] == NULL)
-		{
-			m_pBit[dispNum] = (BYTE*)malloc(m_pCamCtrl[dispNum]->m_bufferSize);
-		}
+//		if (m_pBit[dispNum] == NULL)
+//		{
+//			m_pBit[dispNum] = (BYTE*)malloc(m_pCamCtrl[dispNum]->m_bufferSize);
+//		}
 		// 처리 완료된 이미지 저장
-		memcpy(m_pBit[dispNum], m_pCamCtrl[dispNum]->m_pImage, m_pCamCtrl[dispNum]->m_bufferSize);
+		// memcpy(m_pBit[dispNum], m_pCamCtrl[dispNum]->m_pImage, m_pCamCtrl[dispNum]->m_bufferSize);
 		
 		Sleep(5);
 		// 조명 Off
 		LightSend(dispNum, FALSE);
 		// DIBMake(dispNum);
 		// hbitmap2CImage(dispNum);
-		// RawToGDIPBmp(dispNum);
+		RawToGDIPBmp(dispNum, m_pCamCtrl[dispNum]->m_camWidth, m_pCamCtrl[dispNum]->m_camHeight, m_pCamCtrl[dispNum]->m_pImage);
+		
 		if (dispNum == 0)
 		{
 			GetDlgItem(IDC_CAM1PLAY)->SetWindowTextW(_T("Play"));
@@ -670,11 +670,12 @@ BOOL CSmall_StudioDlg::DrawImageSeq(int dispNum)
 		}
 		else
 		{
+			m_IsPlay[dispNum] = FALSE;
 			return FALSE;
 		}
+		m_IsPlay[dispNum] = FALSE;
 		::LeaveCriticalSection(&mSc);
 	}
-
 	// continuous mode 구현중 20201106 장한결
 	else if (m_CamTrig[dispNum] == CAMERA_TRIG_CONTINUOUS)
 	{
@@ -720,8 +721,10 @@ BOOL CSmall_StudioDlg::RawToGDIPBmp(int dispNum, int width, int height, BYTE* bu
 	return TRUE;
 }
 
+/*
 // 아마.. viewer를 구현하면 여기다 하게 될 듯? 아니면 MemDC로 수정하는 부분 따로 만들던가
-// 현재 사용불가 20201106 장한결
+// 현재 사용불가 현재 사용불가 현재 사용불가 현재 사용불가 현재 사용불가 현재 사용불가 현재 사용불가 현재 사용불가 현재 사용불가 
+// 20201106 장한결
 BOOL CSmall_StudioDlg::DIBMake(int dispNum)
 {
 	CString debug;
@@ -758,7 +761,8 @@ BOOL CSmall_StudioDlg::DIBMake(int dispNum)
 
 	return TRUE;
 }
-// 현재 사용불가 20201106 장한결
+// 현재 사용불가 현재 사용불가 현재 사용불가 현재 사용불가 현재 사용불가 현재 사용불가 현재 사용불가 현재 사용불가 현재 사용불가 
+// 20201106 장한결
 BOOL CSmall_StudioDlg::hbitmap2CImage(int dispNum)
 {
 	if (!m_pCOriImage[dispNum]->IsNull())
@@ -769,13 +773,13 @@ BOOL CSmall_StudioDlg::hbitmap2CImage(int dispNum)
 	CImage dest_image;
 	BITMAP dest_bmp_info;
 	GetObject(m_hBmp[dispNum], sizeof(BITMAP), &dest_bmp_info);
-	/*
-	dest_bmp_info.bmBits = m_hBmp[dispNum] + sizeof(BITMAPINFO);
-	dest_bmp_info.bmBitsPixel = 8;
-	dest_bmp_info.bmHeight = m_pCamCtrl[dispNum]->m_camHeight;
-	dest_bmp_info.bmWidth = m_pCamCtrl[dispNum]->m_camWidth;
-	dest_bmp_info.bmPlanes = 1;
-	*/
+	
+//	dest_bmp_info.bmBits = m_hBmp[dispNum] + sizeof(BITMAPINFO);
+//	dest_bmp_info.bmBitsPixel = 8;
+//	dest_bmp_info.bmHeight = m_pCamCtrl[dispNum]->m_camHeight;
+//	dest_bmp_info.bmWidth = m_pCamCtrl[dispNum]->m_camWidth;
+//	dest_bmp_info.bmPlanes = 1;
+	
 
 	dest_image.Create(dest_bmp_info.bmWidth, dest_bmp_info.bmHeight, dest_bmp_info.bmBitsPixel);
 	GetObject((HBITMAP)dest_image, sizeof(BITMAP), &dest_bmp_info);
@@ -802,7 +806,8 @@ BOOL CSmall_StudioDlg::hbitmap2CImage(int dispNum)
 
 	return TRUE;
 }
-
+// 현재 사용불가 현재 사용불가 현재 사용불가 현재 사용불가 현재 사용불가 현재 사용불가 현재 사용불가 현재 사용불가 현재 사용불가 
+*/
 void CSmall_StudioDlg::OnBnClickedDebugdragon()
 {
 	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.

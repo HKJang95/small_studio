@@ -49,8 +49,8 @@ private:
 	BOOL			GetOptionValue(int mode);
 	BOOL			GetOptionValue(int mode, int dispNum);
 	BOOL			DrawImageSeq(int dispNum);
-	BOOL			DIBMake(int dispNum);
-	BOOL			hbitmap2CImage(int dispNum);
+//	BOOL			DIBMake(int dispNum);
+//	BOOL			hbitmap2CImage(int dispNum);
 	BOOL			LightCtrl(int dispNum);
 	BOOL			LightSend(int dispNum, BOOL OnOff);
 	BOOL			RawToGDIPBmp(int dispNum, int width, int height, BYTE* buffer);
@@ -70,7 +70,7 @@ public:
 
 	BYTE*			m_pBit[MAXCAM];		// 이미지버퍼
 	HBITMAP			m_hBmp[MAXCAM];
-	CImage*			m_pCOriImage[MAXCAM]; // 이미지 객체
+//	CImage*			m_pCOriImage[MAXCAM]; // 이미지 객체
 	CLightCtrl*		m_pLightCtrl;		 // Serial port Control용 객체
 
 	HANDLE			m_hContThread;		// Continuous mode용 thread

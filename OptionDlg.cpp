@@ -251,6 +251,7 @@ void COptionDlg::OnBnClickedLtestbtn()
 	if (m_pLightCtrl != NULL)
 	{
 		m_pLightCtrl->Send(sendASCII);
+		Sleep(50);
 		checkProtocol.Format(_T("CHAS000000000000"));
 		sendASCII = (CString)(stx + checkProtocol + etx);
 		m_pLightCtrl->Send(sendASCII);
