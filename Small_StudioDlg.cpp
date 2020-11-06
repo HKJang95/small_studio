@@ -217,6 +217,17 @@ void CSmall_StudioDlg::OnPaint()
 	}
 	else
 	{
+		for (int i = 0; i < MAXCAM; i++)
+		{
+			if (m_IsOpen[i])
+			{
+				if (m_IsPlay[i])
+				{
+					
+				}
+			}
+		}
+
 		CDialogEx::OnPaint();
 	}
 }
@@ -233,7 +244,12 @@ void CSmall_StudioDlg::OnDestroy()
 	CDialogEx::OnDestroy();
 	if (m_pLightCtrl != NULL)
 	{
-		delete m_pLightCtrl;
+		m_pLightCtrl->Close();
+		if (!m_pLightCtrl->m_bIsOpenned)
+		{
+			delete m_pLightCtrl;
+			m_pLightCtrl = NULL;
+		}
 	}
 
 	for (int i = 0; i < MAXCAM; i++)
@@ -645,6 +661,14 @@ BOOL CSmall_StudioDlg::DrawImageSeq(int dispNum)
 		LightSend(dispNum, TRUE);
 		// Image Grab
 		m_pCamCtrl[dispNum]->GrabImageSW();
+		CString debug;
+		OutputDebugString(_T("Grab complete.\n"));
+		for (int i = 0; i < 10; i++)
+		{
+			debug.Format(_T(" %d "), m_pCamCtrl[dispNum]->m_pImage[i]);
+			OutputDebugString(debug);
+		}
+		OutputDebugString(_T("\n"));
 		// 실제 처리 (MemDC Draw 등) 완료된 Image 저장할 공간 alloc
 //		if (m_pBit[dispNum] == NULL)
 //		{
@@ -701,8 +725,10 @@ BOOL CSmall_StudioDlg::RawToGDIPBmp(int dispNum, int width, int height, BYTE* bu
 		delete m_pBitmap[dispNum];
 		m_pBitmap[dispNum] = NULL;
 	}
+	m_vidwidth[dispNum] = width;
+	m_vidheight[dispNum] = height;
 
-	m_pBitmap[dispNum] = new Bitmap(width, height, PixelFormat8bppIndexed);
+	m_pBitmap[dispNum] = new Bitmap(m_vidwidth[dispNum], height, PixelFormat8bppIndexed);
 	rc = Rect(0, 0, width, height);
 	m_pBitmap[dispNum]->LockBits(&rc, 0, PixelFormat8bppIndexed, &bitmapdata);
 	memcpy(bitmapdata.Scan0, buffer, width*height);
@@ -718,6 +744,7 @@ BOOL CSmall_StudioDlg::RawToGDIPBmp(int dispNum, int width, int height, BYTE* bu
 	m_pBitmap[dispNum]->SetPalette(pPalette);
 	delete[] pPalette;
 	InvalidateRect(m_rcDisp[dispNum], NULL);
+	
 	return TRUE;
 }
 

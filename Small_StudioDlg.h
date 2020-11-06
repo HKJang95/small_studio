@@ -61,6 +61,8 @@ public:
 	BOOL			m_DrawCommand[MAXCAM]; // invalidate 호출용 BOOL
 	BOOL			m_IsOpen[MAXCAM];	// 카메라 Open 여부
 	BOOL			m_IsPlay[MAXCAM];	// Play 여부 (Grab & Show)
+	INT32			m_vidwidth[MAXCAM];
+	INT32			m_vidheight[MAXCAM];
 	BOOL			m_IsSerialOpen;		// Seiral Port Open여부
 	CCrevisCtrl*	m_pCamCtrl[MAXCAM]; // 카메라용 Class 객체 포인터입니다. 
 	INT32			m_statusCode;		// 프로그램 에러 코드를 저장하는 변수입니다.
