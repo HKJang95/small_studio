@@ -53,9 +53,11 @@ private:
 	BOOL			hbitmap2CImage(int dispNum);
 	BOOL			LightCtrl(int dispNum);
 	BOOL			LightSend(int dispNum, BOOL OnOff);
+	BOOL			RawToGDIPBmp(int dispNum, int width, int height, BYTE* buffer);
 
 public:
 	bool			m_IsSystemInit;		// Camera SDK Init 상태 점검입니다.
+	BOOL			m_DrawCommand[MAXCAM]; // invalidate 호출용 BOOL
 	BOOL			m_IsOpen[MAXCAM];	// 카메라 Open 여부
 	BOOL			m_IsPlay[MAXCAM];	// Play 여부 (Grab & Show)
 	BOOL			m_IsSerialOpen;		// Seiral Port Open여부
@@ -65,10 +67,20 @@ public:
 
 	CString			m_optionPath;		// option.ini 파일의 path (초기 실행시 한 번만 받아옴)
 
-	// BYTE*			m_Bit[MAXCAM];		// 이미지버퍼
+	BYTE*			m_pBit[MAXCAM];		// 이미지버퍼
 	HBITMAP			m_hBmp[MAXCAM];
 	CImage*			m_pCOriImage[MAXCAM]; // 이미지 객체
 	CLightCtrl*		m_pLightCtrl;		 // Serial port Control용 객체
+
+	HANDLE			m_hContThread;		// Continuous mode용 thread
+	HANDLE			m_TriggerThread;	// Trigger Mode용 thread
+
+	// GDI+
+	Graphics*		m_pGraphics[MAXCAM];
+	Bitmap*			m_pBitmap[MAXCAM];
+	HDC				m_hDC[MAXCAM];
+	CRect			m_rcDisp[MAXCAM];
+	////////////////////////////////////////////////////////////////////////////////////////////////
 
 	//option.ini 파일에서 read 할 변수 20201103 장한결
 	CString			m_ComPort;			// 조명 Controller에서 사용할 port number입니다.
@@ -78,7 +90,7 @@ public:
 	DOUBLE			m_CamExposure[MAXCAM]; // Exposure time입니다.
 	INT32			m_CamTrig[MAXCAM]; // 카메라의 Trigger mode 입니다.
 	CString			m_CamLightCh[MAXCAM]; // 카메라 별 사용할 Light Channel number입니다.
-
+	////////////////////////////////////////////////////////////////////////////////////////////////
 	CRITICAL_SECTION mSc;
 	afx_msg void OnBnClickedDebugdragon();
 };

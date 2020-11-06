@@ -1,5 +1,2 @@
 ﻿  stdafx.cpp
-  Small_StudioDlg.cpp
-  Small_Studio.cpp
-  코드를 생성하고 있습니다...
-  Small_Studio.vcxproj -> E:\필요문서\5. 과제\6. big assignment\Small_Studio\Debug\Small_Studio.exe
+e:\필요문서\5. 과제\6. big assignment\small_studio\small_studio\stdafx.h(62): fatal error C1083: 포함 파일을 열 수 없습니다. 'VirtualFG40.h': No such file or directory

@@ -8,12 +8,13 @@
 #include "Small_StudioDlg.h"
 #include "afxdialogex.h"
 
+// GDI+ 사용을 위한 해제 20201106 장한결
 
-
+/*
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
-
+*/
 // 응용 프로그램 정보에 사용되는 CAboutDlg 대화 상자입니다.
 
 void ContinuousThreadProc(CSmall_StudioDlg* pPrivate)
@@ -68,13 +69,15 @@ CSmall_StudioDlg::CSmall_StudioDlg(CWnd* pParent /*=NULL*/)
 
 	for (int i = 0; i < MAXCAM; i++)
 	{
-//		m_Bit[i] = NULL;
+		m_pBit[i] = NULL;
 		m_pCOriImage[i] = NULL;
 		m_pCamCtrl[i] = NULL;
 		m_CamIP[i] = _T("");
 		m_CamExposure[i] = 0.0;
 		m_IsOpen[i] = FALSE;
 		m_IsPlay[i] = FALSE;
+		m_DrawCommand[i] = FALSE;
+
 	}
 
 	for (int i = 0; i < LIGHTCH; i++)
@@ -114,7 +117,23 @@ BOOL CSmall_StudioDlg::OnInitDialog()
 	for (int i = 0; i < MAXCAM; i++)
 	{
 		m_pCOriImage[i] = new CImage();
+
+		if (i == 0)
+		{
+			static CClientDC dispDC(GetDlgItem(IDC_PIC1));
+			m_hDC[i] = dispDC.GetSafeHdc();
+			GetDlgItem(IDC_PIC1)->GetWindowRect(m_rcDisp[i]);
+			m_pGraphics[i] = Graphics::FromHDC(m_hDC[i]);
+		}
+		if (i == 1)
+		{
+			static CClientDC dispDC(GetDlgItem(IDC_PIC2));
+			m_hDC[i] = dispDC.GetSafeHdc();
+			GetDlgItem(IDC_PIC2)->GetWindowRect(m_rcDisp[i]);
+			m_pGraphics[i] = Graphics::FromHDC(m_hDC[i]);
+		}
 	}
+
 	m_optionPath.Format(_T("%s\\option.ini"), GetExePath());
 	GetOptionValue(OPT_READ_ALL);
 
@@ -146,6 +165,8 @@ BOOL CSmall_StudioDlg::OnInitDialog()
 			pSysMenu->AppendMenu(MF_STRING, IDM_ABOUTBOX, strAboutMenu);
 		}
 	}
+
+
 
 
 	// 이 대화 상자의 아이콘을 설정합니다.  응용 프로그램의 주 창이 대화 상자가 아닐 경우에는
@@ -226,6 +247,18 @@ void CSmall_StudioDlg::OnDestroy()
 		{
 			delete m_pCOriImage[i];
 		}
+		if (m_pBit[i] != NULL)
+		{
+			free(m_pBit[i]);
+			m_pBit[i] = NULL;
+		}
+
+		if (m_pBitmap[i] != NULL)
+		{
+			delete m_pBitmap[i];
+			m_pBitmap[i] = NULL;
+		}
+
 	}
 
 	if (m_IsSystemInit)
@@ -269,12 +302,13 @@ BOOL CSmall_StudioDlg::camOpenSeq(int dispNum)
 // Cam 1,2 번 Open. option.ini 파일의 내용을 읽어서 open합니다. 20201030 장한결
 void CSmall_StudioDlg::OnBnClickedCam1open()
 {
+	int dispNum = 0;
 	GetDlgItem(IDC_CAM1OPEN)->EnableWindow(FALSE);
 	// Option.ini 파일을 읽어 Open시 필요한 정보를 읽습니다.
-	GetOptionValue(OPT_READ_CAM, 0);
-	if (!m_IsOpen[0])
+	GetOptionValue(OPT_READ_CAM, dispNum);
+	if (!m_IsOpen[dispNum])
 	{
-		if (camOpenSeq(0))
+		if (camOpenSeq(dispNum))
 		{
 			GetDlgItem(IDC_CAM1OPEN)->SetWindowTextW(_T("Camera 1 Open"));
 			GetDlgItem(IDC_CAM1PLAY)->EnableWindow(TRUE);
@@ -287,11 +321,13 @@ void CSmall_StudioDlg::OnBnClickedCam1open()
 	}
 	else
 	{
-		delete m_pCamCtrl[0];
-		m_pCamCtrl[0] = NULL;
-		m_IsOpen[0] = FALSE;
+		delete m_pCamCtrl[dispNum];
+		m_pCamCtrl[dispNum] = NULL;
+		m_IsOpen[dispNum] = FALSE;
 		GetDlgItem(IDC_CAM1OPEN)->SetWindowTextW(_T("Camera 1 Closed"));
 		GetDlgItem(IDC_CAM1PLAY)->EnableWindow(FALSE);
+		free(m_pBit[dispNum]);
+		m_pBit[dispNum] = NULL;
 	}
 	GetDlgItem(IDC_CAM1OPEN)->EnableWindow(TRUE);
 }
@@ -299,11 +335,12 @@ void CSmall_StudioDlg::OnBnClickedCam1open()
 
 void CSmall_StudioDlg::OnBnClickedCam2open()
 {
+	int dispNum = 1;
 	GetDlgItem(IDC_CAM2OPEN)->EnableWindow(FALSE);
-	GetOptionValue(OPT_READ_CAM, 1);
-	if (!m_IsOpen[1])
+	GetOptionValue(OPT_READ_CAM, dispNum);
+	if (!m_IsOpen[dispNum])
 	{
-		if (camOpenSeq(1))
+		if (camOpenSeq(dispNum))
 		{
 			GetDlgItem(IDC_CAM2OPEN)->SetWindowTextW(_T("Camera 2 Open"));
 			GetDlgItem(IDC_CAM2PLAY)->EnableWindow(TRUE);
@@ -316,11 +353,13 @@ void CSmall_StudioDlg::OnBnClickedCam2open()
 	}
 	else
 	{
-		delete m_pCamCtrl[1];
-		m_pCamCtrl[1] = NULL;
-		m_IsOpen[1] = FALSE;
+		delete m_pCamCtrl[dispNum];
+		m_pCamCtrl[dispNum] = NULL;
+		m_IsOpen[dispNum] = FALSE;
 		GetDlgItem(IDC_CAM2OPEN)->SetWindowTextW(_T("Camera 2 Closed"));
 		GetDlgItem(IDC_CAM2PLAY)->EnableWindow(FALSE);
+		free(m_pBit[dispNum]);
+		m_pBit[dispNum] = NULL;
 	}
 	GetDlgItem(IDC_CAM2OPEN)->EnableWindow(TRUE);
 }
@@ -409,6 +448,8 @@ void CSmall_StudioDlg::OnBnClickedLightopen()
 		m_IsSerialOpen = FALSE;
 
 		GetDlgItem(IDC_LIGHTOPEN)->SetWindowTextW(_T("Light Closed"));
+		delete m_pLightCtrl;
+		m_pLightCtrl = NULL;
 		return;
 	}
 	m_IsSerialOpen = TRUE;
@@ -576,19 +617,32 @@ BOOL CSmall_StudioDlg::GetOptionValue(int mode, int dispNum)
 	return TRUE;
 }
 
+// Grab -> CImage -> 화면에 Draw 하는 과정 - 실패
+// Grab -> GDIPlus bitmap -> 화면에 Draw하는 과정
+// 20201105 장한결
 BOOL CSmall_StudioDlg::DrawImageSeq(int dispNum)
 {
 	if (m_CamTrig[dispNum] == CAMERA_TRIG_SW)
 	{
 		::EnterCriticalSection(&mSc);
+		// 조명 On
 		LightSend(dispNum, TRUE);
+		// Image Grab
 		m_pCamCtrl[dispNum]->GrabImageSW();
-		Sleep(5);
-		LightSend(dispNum, FALSE);
-		DIBMake(dispNum);
+		// 실제 처리 (MemDC Draw 등) 완료된 Image 저장할 공간 alloc
+		if (m_pBit[dispNum] == NULL)
+		{
+			m_pBit[dispNum] = (BYTE*)malloc(m_pCamCtrl[dispNum]->m_bufferSize);
+		}
+		// 처리 완료된 이미지 저장
+		memcpy(m_pBit[dispNum], m_pCamCtrl[dispNum]->m_pImage, m_pCamCtrl[dispNum]->m_bufferSize);
 		
-		hbitmap2CImage(dispNum);
-
+		Sleep(5);
+		// 조명 Off
+		LightSend(dispNum, FALSE);
+		// DIBMake(dispNum);
+		// hbitmap2CImage(dispNum);
+		// RawToGDIPBmp(dispNum);
 		if (dispNum == 0)
 		{
 			GetDlgItem(IDC_CAM1PLAY)->SetWindowTextW(_T("Play"));
@@ -601,41 +655,67 @@ BOOL CSmall_StudioDlg::DrawImageSeq(int dispNum)
 		{
 			return FALSE;
 		}
-
 		::LeaveCriticalSection(&mSc);
-
-	
 	}
+
+	// continuous mode 구현중 20201106 장한결
 	else if (m_CamTrig[dispNum] == CAMERA_TRIG_CONTINUOUS)
 	{
 		::EnterCriticalSection(&mSc);
 		m_pCamCtrl[dispNum]->GrabImageContinuous();
-		DIBMake(dispNum);
-		hbitmap2CImage(dispNum);
+		// DIBMake(dispNum);
+		// hbitmap2CImage(dispNum);
 		::LeaveCriticalSection(&mSc);
 	}
 
 	return TRUE;
 }
 
-// 이미지를 hbitmap으로 20201104 장한결
-// 아마.. viewer를 구현하면 여기다 하게 될 듯? 아니면 MemDC로 수정하는 부분 따로 만들던가
-BOOL CSmall_StudioDlg::DIBMake(int dispNum)
+BOOL CSmall_StudioDlg::RawToGDIPBmp(int dispNum, int width, int height, BYTE* buffer)
 {
-	OutputDebugString(_T("before getDC\n"));
-	CString debug;
-	for (int i = 0; i < 10; i++)
+	BitmapData bitmapdata;
+	Rect rc;
+	ColorPalette* pPalette;
+	int size = 0;
+
+	if (m_pBitmap[dispNum] != NULL)
 	{
-		debug.Format(_T("%d"), m_pCamCtrl[dispNum]->m_pImage[i]);
-		OutputDebugString(debug);
+		delete m_pBitmap[dispNum];
+		m_pBitmap[dispNum] = NULL;
 	}
 
+	m_pBitmap[dispNum] = new Bitmap(width, height, PixelFormat8bppIndexed);
+	rc = Rect(0, 0, width, height);
+	m_pBitmap[dispNum]->LockBits(&rc, 0, PixelFormat8bppIndexed, &bitmapdata);
+	memcpy(bitmapdata.Scan0, buffer, width*height);
+	m_pBitmap[dispNum]->UnlockBits(&bitmapdata);
+
+	int size = m_pBitmap[dispNum]->GetPaletteSize();
+	pPalette = new ColorPalette[size];
+	m_pBitmap[dispNum]->GetPalette(pPalette, size);
+	for (unsigned int i = 0; i < pPalette->Count; i++)
+	{
+		pPalette->Entries[i] = Color::MakeARGB(255, i, i, i);
+	}
+	m_pBitmap[dispNum]->SetPalette(pPalette);
+	delete[] pPalette;
+	InvalidateRect(m_rcDisp[dispNum], NULL);
+	return TRUE;
+}
+
+// 아마.. viewer를 구현하면 여기다 하게 될 듯? 아니면 MemDC로 수정하는 부분 따로 만들던가
+// 현재 사용불가 20201106 장한결
+BOOL CSmall_StudioDlg::DIBMake(int dispNum)
+{
+	CString debug;
 	OutputDebugString(_T("\n\n"));
+
 	HDC hDC = ::GetDC(NULL);
+
 	OutputDebugString(_T("after getDC\n"));
 	for (int i = 0; i < 10; i++)
 	{
-		debug.Format(_T("%d"), m_pCamCtrl[dispNum]->m_pImage[i]);
+		debug.Format(_T("%d"), m_pBit[dispNum][i]);
 		OutputDebugString(debug);
 	}
 	OutputDebugString(_T("\n\n"));
@@ -649,31 +729,55 @@ BOOL CSmall_StudioDlg::DIBMake(int dispNum)
 	bmi.bmiHeader.biBitCount = 8;								// 8bpp
 	bmi.bmiHeader.biCompression = BI_RGB;						// RGB Raw data이므로
 	// CreateDIBSection으로 HBITMAP 생성
-	m_hBmp[dispNum] = CreateDIBSection(hDC, &bmi, DIB_RGB_COLORS, (void**)&(m_pCamCtrl[dispNum]->m_pImage), NULL, NULL);
+	m_hBmp[dispNum] = CreateDIBSection(hDC, &bmi, DIB_RGB_COLORS, (void**)&(m_pBit[dispNum]), NULL, 0);
+	OutputDebugString(_T("after createDIB\n"));
+	for (int i = 0; i < 10; i++)
+	{
+		debug.Format(_T("%d"), m_pBit[dispNum][i]);
+		OutputDebugString(debug);
+	}
+	OutputDebugString(_T("\n\n"));
 	::ReleaseDC(NULL, hDC);
+
 	return TRUE;
 }
-
+// 현재 사용불가 20201106 장한결
 BOOL CSmall_StudioDlg::hbitmap2CImage(int dispNum)
 {
 	if (!m_pCOriImage[dispNum]->IsNull())
 	{
 		m_pCOriImage[dispNum]->Destroy();
-	}
-	m_pCOriImage[dispNum]->Attach(m_hBmp[dispNum]);
+	}	
+	
+	CImage dest_image;
+	BITMAP dest_bmp_info;
+	GetObject(m_hBmp[dispNum], sizeof(BITMAP), &dest_bmp_info);
+	/*
+	dest_bmp_info.bmBits = m_hBmp[dispNum] + sizeof(BITMAPINFO);
+	dest_bmp_info.bmBitsPixel = 8;
+	dest_bmp_info.bmHeight = m_pCamCtrl[dispNum]->m_camHeight;
+	dest_bmp_info.bmWidth = m_pCamCtrl[dispNum]->m_camWidth;
+	dest_bmp_info.bmPlanes = 1;
+	*/
+
+	dest_image.Create(dest_bmp_info.bmWidth, dest_bmp_info.bmHeight, dest_bmp_info.bmBitsPixel);
+	GetObject((HBITMAP)dest_image, sizeof(BITMAP), &dest_bmp_info);
+	GetBitmapBits(m_hBmp[dispNum], dest_bmp_info.bmHeight*dest_bmp_info.bmWidth*dest_bmp_info.bmBitsPixel / 8, dest_bmp_info.bmBits);
+	
+	// m_pCOriImage[dispNum]->Attach(m_hBmp[dispNum]);
 	COLORREF ref;
 	CString debug;
 	OutputDebugString(_T("cimage attach\n"));
 	for (int i = 0; i < 10; i++)
 	{
-		debug.Format(_T("%d"), m_pCamCtrl[dispNum]->m_pImage[i]);
+		debug.Format(_T("%d"), m_pBit[dispNum][i]);
 		OutputDebugString(debug);
 	}
 	OutputDebugString(_T("\n\n"));
 	OutputDebugString(_T("cimage getpixel\n"));
 	for (int i = 0; i < 10; i++)
 	{
-		ref = m_pCOriImage[dispNum]->GetPixel(i, 0);
+		ref = dest_image.GetPixel(i, 0);
 		debug.Format(_T("%d"), ref);
 		OutputDebugString(debug);
 	}
@@ -725,3 +829,4 @@ BOOL CSmall_StudioDlg::LightSend(int dispNum, BOOL OnOff)
 		return FALSE;
 	}
 }
+

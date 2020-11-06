@@ -36,6 +36,7 @@ CSmall_StudioApp theApp;
 
 
 // CSmall_StudioApp 초기화
+ULONG_PTR gdiplusToken;
 
 BOOL CSmall_StudioApp::InitInstance()
 {
@@ -86,7 +87,12 @@ BOOL CSmall_StudioApp::InitInstance()
 		TRACE(traceAppMsg, 0, "경고: 대화 상자를 만들지 못했으므로 응용 프로그램이 예기치 않게 종료됩니다.\n");
 		TRACE(traceAppMsg, 0, "경고: 대화 상자에서 MFC 컨트롤을 사용하는 경우 #define _AFX_NO_MFC_CONTROLS_IN_DIALOGS를 수행할 수 없습니다.\n");
 	}
-
+	GdiplusStartupInput gdiplusStartupInput;
+	if (::GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL) != Ok)
+	{
+		AfxMessageBox(_T("ERROR : Failed to initialize GDI+ library"));
+		return FALSE;
+	}
 	// 위에서 만든 셸 관리자를 삭제합니다.
 	if (pShellManager != NULL)
 	{
@@ -98,3 +104,11 @@ BOOL CSmall_StudioApp::InitInstance()
 	return FALSE;
 }
 
+
+
+int CSmall_StudioApp::ExitInstance()
+{
+	// TODO: 여기에 특수화된 코드를 추가 및/또는 기본 클래스를 호출합니다.
+	::GdiplusShutdown(gdiplusToken);
+	return CWinApp::ExitInstance();
+}

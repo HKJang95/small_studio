@@ -27,6 +27,8 @@ CLightCtrl::CLightCtrl(CString port, CString baudrate, CString parity, CString d
 
 CLightCtrl::~CLightCtrl()
 {
+	delete m_pEvent;
+	m_pEvent = NULL;
 }
 
 
@@ -148,7 +150,8 @@ void CLightCtrl::Close()
 {
 	if (!m_bIsOpenned)
 		return;
-
+	
+	
 	m_bIsOpenned = FALSE;
 	SetCommMask(m_hComDev, 0);
 	EscapeCommFunction(m_hComDev, CLRDTR);
