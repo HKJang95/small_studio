@@ -18,11 +18,11 @@
 
 void Screen1ThreadProc(CSmall_StudioDlg* pPrivate)
 {
-	pPrivate->DrawImageSeq(0);
+	pPrivate->thread1proc();
 }
 void Screen2ThreadProc(CSmall_StudioDlg* pPrivate)
 {
-	pPrivate->DrawImageSeq(1);
+	pPrivate->thread2proc();
 }
 
 
@@ -178,7 +178,6 @@ BOOL CSmall_StudioDlg::OnInitDialog()
 	//  프레임워크가 이 작업을 자동으로 수행합니다.
 	SetIcon(m_hIcon, TRUE);			// 큰 아이콘을 설정합니다.
 	SetIcon(m_hIcon, FALSE);		// 작은 아이콘을 설정합니다.
-
 	// TODO: 여기에 추가 초기화 작업을 추가합니다.
 
 	return TRUE;  // 포커스를 컨트롤에 설정하지 않으면 TRUE를 반환합니다.
@@ -228,7 +227,7 @@ void CSmall_StudioDlg::OnPaint()
 			{
 				if (m_IsPlay[i])
 				{
-					m_pGraphics[i]->DrawImage(m_pBitmap[i], 0, 0, m_vidwidth[i], m_vidheight[i]);
+					DrawImageSeq(i);
 					if (m_CamTrig[i] == CAMERA_TRIG_SW)
 					{
 						m_IsPlay[i] = FALSE;
@@ -526,6 +525,7 @@ void CSmall_StudioDlg::OnBnClickedLightopen()
 void CSmall_StudioDlg::OnBnClickedCam1play()
 {
 	int dispNum = 0;
+	GetOptionValue(OPT_READ_PLAY, dispNum);
 	if (m_IsPlay[dispNum])
 	{
 		GetDlgItem(IDC_CAM1PLAY)->SetWindowTextW(_T("Play"));
@@ -563,9 +563,10 @@ void CSmall_StudioDlg::OnBnClickedCam1play()
 void CSmall_StudioDlg::OnBnClickedCam2play()
 {
 	int dispNum = 1;
+	GetOptionValue(OPT_READ_PLAY, dispNum);
 	if (m_IsPlay[dispNum])
 	{
-		GetDlgItem(IDC_CAM1PLAY)->SetWindowTextW(_T("Play"));
+		GetDlgItem(IDC_CAM2PLAY)->SetWindowTextW(_T("Play"));
 		if (m_hPlayThread[dispNum] != NULL)
 		{
 			// Thread Suspend
@@ -588,7 +589,7 @@ void CSmall_StudioDlg::OnBnClickedCam2play()
 			m_hPlayThread[dispNum] = NULL;
 		}
 		m_IsPlay[dispNum] = TRUE;
-		GetDlgItem(IDC_CAM1PLAY)->SetWindowTextW(_T("Stop"));
+		GetDlgItem(IDC_CAM2PLAY)->SetWindowTextW(_T("Stop"));
 		ResetEvent(m_hPlayTerminate[dispNum]);
 		m_hPlayThread[dispNum] = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)Screen2ThreadProc, this, 0, NULL);
 		// 스레드 동작
@@ -626,7 +627,7 @@ BOOL CSmall_StudioDlg::DrawImageSeq(int dispNum)
 		// DIBMake(dispNum);
 		// hbitmap2CImage(dispNum);
 		RawToGDIPBmp(dispNum, m_pCamCtrl[dispNum]->m_camWidth, m_pCamCtrl[dispNum]->m_camHeight, m_pCamCtrl[dispNum]->m_pImage);
-		InvalidateRect(m_rcDisp[dispNum], NULL);
+		m_pGraphics[dispNum]->DrawImage(m_pBitmap[dispNum], 0, 0, m_vidwidth[dispNum], m_vidheight[dispNum]);
 		if (dispNum == 0)
 		{
 			GetDlgItem(IDC_CAM1PLAY)->SetWindowTextW(_T("Play"));
@@ -645,21 +646,62 @@ BOOL CSmall_StudioDlg::DrawImageSeq(int dispNum)
 	// continuous mode 구현중 20201106 장한결
 	else if (m_CamTrig[dispNum] == CAMERA_TRIG_CONTINUOUS)
 	{
-		while (WaitForSingleObject(m_hPlayTerminate[dispNum], 0) != WAIT_OBJECT_0)
-		{
-			::EnterCriticalSection(&mSc);
-			LightSend(dispNum, TRUE);
-			m_pCamCtrl[dispNum]->GrabImageContinuous();
-			RawToGDIPBmp(dispNum, m_pCamCtrl[dispNum]->m_camWidth, m_pCamCtrl[dispNum]->m_camHeight, m_pCamCtrl[dispNum]->m_pImage);
-			InvalidateRect(m_rcDisp[dispNum], NULL);
-			// DIBMake(dispNum);
-			// hbitmap2CImage(dispNum);
-			::LeaveCriticalSection(&mSc);
-		}
+		::EnterCriticalSection(&mSc);
+		m_pCamCtrl[dispNum]->GrabImageContinuous();
+		RawToGDIPBmp(dispNum, m_pCamCtrl[dispNum]->m_camWidth, m_pCamCtrl[dispNum]->m_camHeight, m_pCamCtrl[dispNum]->m_pImage);
+		m_pGraphics[dispNum]->DrawImage(m_pBitmap[dispNum], 0, 0, m_vidwidth[dispNum], m_vidheight[dispNum]);
+		// DIBMake(dispNum);
+		// hbitmap2CImage(dispNum);
+		::LeaveCriticalSection(&mSc);
 	}
 
 	return TRUE;
 }
+
+void CSmall_StudioDlg::thread1proc()
+{
+	int dispNum = 0;
+	if (m_CamTrig[dispNum] == CAMERA_TRIG_SW)
+	{
+		Sleep(10);
+		InvalidateRect(m_rcDisp[dispNum], NULL);
+	}
+	else if (m_CamTrig[dispNum] == CAMERA_TRIG_CONTINUOUS)
+	{
+		LightSend(dispNum, TRUE);
+		while (WaitForSingleObject(m_hPlayTerminate[dispNum], 0) != WAIT_OBJECT_0)
+		{
+			InvalidateRect(m_rcDisp[dispNum], NULL);
+		}
+	}
+	else
+	{
+		return;
+	}
+}
+
+void CSmall_StudioDlg::thread2proc()
+{
+	int dispNum = 1;
+	if (m_CamTrig[dispNum] == CAMERA_TRIG_SW)
+	{
+		Sleep(10);
+		InvalidateRect(m_rcDisp[dispNum], NULL);
+	}
+	else if (m_CamTrig[dispNum] == CAMERA_TRIG_CONTINUOUS)
+	{
+		LightSend(dispNum, TRUE);
+		while (WaitForSingleObject(m_hPlayTerminate[dispNum], 0) != WAIT_OBJECT_0)
+		{
+			InvalidateRect(m_rcDisp[dispNum], NULL);
+		}
+	}
+	else
+	{
+		return;
+	}
+}
+
 
 // Option값 설정을 위한 현재 실행파일 경로 반환 20201030 장한결
 CString CSmall_StudioDlg::GetExePath()

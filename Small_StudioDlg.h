@@ -95,5 +95,7 @@ public:
 	////////////////////////////////////////////////////////////////////////////////////////////////
 	CRITICAL_SECTION mSc;
 	BOOL			DrawImageSeq(int dispNum);
+	void			thread1proc();
+	void			thread2proc();
 	afx_msg void OnBnClickedDebugdragon();
 };
