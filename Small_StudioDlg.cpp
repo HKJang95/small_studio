@@ -602,14 +602,15 @@ void CSmall_StudioDlg::OnBnClickedCam2play()
 BOOL CSmall_StudioDlg::DrawImageSeq(int dispNum)
 {
 	// Software Trigger
+	::EnterCriticalSection(&mSc);
 	if (m_CamTrig[dispNum] == CAMERA_TRIG_SW)
 	{
-		::EnterCriticalSection(&mSc);
 		// 조명 On
 		LightSend(dispNum, TRUE);
 		// Image Grab
 		if (!m_pCamCtrl[dispNum]->GrabImageSW())
 		{
+			::LeaveCriticalSection(&mSc);
 			return FALSE;
 		}
 
@@ -638,23 +639,26 @@ BOOL CSmall_StudioDlg::DrawImageSeq(int dispNum)
 		}
 		else
 		{
+			::LeaveCriticalSection(&mSc);
 			m_IsPlay[dispNum] = FALSE;
 			return FALSE;
 		}
-		::LeaveCriticalSection(&mSc);
 	}
 	// continuous mode 구현중 20201106 장한결
 	else if (m_CamTrig[dispNum] == CAMERA_TRIG_CONTINUOUS)
 	{
-		::EnterCriticalSection(&mSc);
-		m_pCamCtrl[dispNum]->GrabImageContinuous();
+		if (m_pCamCtrl[dispNum]->GrabImageContinuous())
+		{
+			::LeaveCriticalSection(&mSc);
+			return FALSE;
+		}
 		RawToGDIPBmp(dispNum, m_pCamCtrl[dispNum]->m_camWidth, m_pCamCtrl[dispNum]->m_camHeight, m_pCamCtrl[dispNum]->m_pImage);
 		m_pGraphics[dispNum]->DrawImage(m_pBitmap[dispNum], 0, 0, m_vidwidth[dispNum], m_vidheight[dispNum]);
 		// DIBMake(dispNum);
 		// hbitmap2CImage(dispNum);
-		::LeaveCriticalSection(&mSc);
+		
 	}
-
+	::LeaveCriticalSection(&mSc);
 	return TRUE;
 }
 
