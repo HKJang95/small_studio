@@ -231,7 +231,6 @@ void CSmall_StudioDlg::OnPaint()
 				}
 			}
 		}
-
 		CDialogEx::OnPaint();
 	}
 }
@@ -697,7 +696,6 @@ BOOL CSmall_StudioDlg::DrawImageSeq(int dispNum)
 			return FALSE;
 		}
 		::LeaveCriticalSection(&mSc);
-		
 	}
 	// continuous mode 구현중 20201106 장한결
 	else if (m_CamTrig[dispNum] == CAMERA_TRIG_CONTINUOUS)
@@ -855,7 +853,7 @@ BOOL CSmall_StudioDlg::LightSend(int dispNum, BOOL OnOff)
 	{
 		if (OnOff)
 		{
-			middle.Format(_T("CH%sS%s"), m_CamLightCh[dispNum], m_OptionBright[chan]);
+			middle.Format(_T("CH%sS%s"), m_CamLightCh[dispNum], m_OptionBright[chan-1]);
 			sendASCII = (CString)(stx + middle + etx);
 			if (m_pLightCtrl->Send(sendASCII))
 			{

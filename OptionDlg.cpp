@@ -147,7 +147,7 @@ void COptionDlg::OnBnClickedOk()
 	m_CamTrig[1] = grabmode;
 
 	m_Cam1LightCH.GetLBText(m_Cam1LightCH.GetCurSel(), m_CamLightCh[0]);
-	m_Cam1LightCH.GetLBText(m_Cam1LightCH.GetCurSel(), m_CamLightCh[1]);
+	m_Cam2LightCH.GetLBText(m_Cam2LightCH.GetCurSel(), m_CamLightCh[1]);
 	
 	m_BaudRateCombo.GetLBText(m_BaudRateCombo.GetCurSel(), m_BaudRate);
 	m_LightPortCombo.GetLBText(m_LightPortCombo.GetCurSel(), m_ComPort);
