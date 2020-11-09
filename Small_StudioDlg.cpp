@@ -74,7 +74,7 @@ CSmall_StudioDlg::CSmall_StudioDlg(CWnd* pParent /*=NULL*/)
 	, m_pLightCtrl(NULL)
 	, m_BaudRate(_T(""))
 	, m_ComPort(_T(""))
-	, m_IsSerialOpen(FALSE)
+	, m_IsSerialOpen(FALSE)1
 	, m_optionmodal(FALSE)
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
@@ -672,7 +672,7 @@ BOOL CSmall_StudioDlg::DrawImageSeq(int dispNum)
 	{
 		m_strErr.Format(_T("inside_drawimage_%d__\n\n"), dispNum);
 		OutputDebugString(m_strErr);
-		if (m_pCamCtrl[dispNum]->GrabImageContinuous())
+		if (!m_pCamCtrl[dispNum]->GrabImageContinuous())
 		{
 			::LeaveCriticalSection(&mSc);
 			return FALSE;
