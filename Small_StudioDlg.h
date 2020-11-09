@@ -23,7 +23,6 @@ public:
 	protected:
 	virtual void DoDataExchange(CDataExchange* pDX);	// DDX/DDV 지원입니다.
 
-
 // 구현입니다.
 protected:
 	HICON m_hIcon;
@@ -79,10 +78,10 @@ public:
 	HANDLE			m_TriggerThread;	// Trigger Mode용 thread
 
 	// GDI+
+	CRect			m_rcDisp[MAXCAM];
+	HDC				m_hDC[MAXCAM];
 	Graphics*		m_pGraphics[MAXCAM];
 	Bitmap*			m_pBitmap[MAXCAM];
-	HDC				m_hDC[MAXCAM];
-	CRect			m_rcDisp[MAXCAM];
 	////////////////////////////////////////////////////////////////////////////////////////////////
 
 	BOOL			m_optionmodal;

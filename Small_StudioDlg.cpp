@@ -9,7 +9,6 @@
 #include "afxdialogex.h"
 
 // GDI+ 사용을 위한 해제 20201106 장한결
-
 /*
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -224,6 +223,10 @@ void CSmall_StudioDlg::OnPaint()
 				if (m_IsPlay[i])
 				{
 					m_pGraphics[i]->DrawImage(m_pBitmap[i], 0, 0, m_vidwidth[i], m_vidheight[i]);
+					if (m_CamTrig[i] == CAMERA_TRIG_SW)
+					{
+						m_IsPlay[i] = FALSE;
+					}
 					break;
 				}
 			}
@@ -658,18 +661,13 @@ BOOL CSmall_StudioDlg::DrawImageSeq(int dispNum)
 	{
 		::EnterCriticalSection(&mSc);
 		// 조명 On
-		m_IsPlay[dispNum] = TRUE;
 		LightSend(dispNum, TRUE);
 		// Image Grab
-		m_pCamCtrl[dispNum]->GrabImageSW();
-		CString debug;
-		OutputDebugString(_T("Grab complete.\n"));
-		for (int i = 0; i < 10; i++)
+		if (!m_pCamCtrl[dispNum]->GrabImageSW())
 		{
-			debug.Format(_T(" %d "), m_pCamCtrl[dispNum]->m_pImage[i]);
-			OutputDebugString(debug);
+			return FALSE;
 		}
-		OutputDebugString(_T("\n"));
+	
 		// 실제 처리 (MemDC Draw 등) 완료된 Image 저장할 공간 alloc
 //		if (m_pBit[dispNum] == NULL)
 //		{
@@ -698,8 +696,8 @@ BOOL CSmall_StudioDlg::DrawImageSeq(int dispNum)
 			m_IsPlay[dispNum] = FALSE;
 			return FALSE;
 		}
-		m_IsPlay[dispNum] = FALSE;
 		::LeaveCriticalSection(&mSc);
+		
 	}
 	// continuous mode 구현중 20201106 장한결
 	else if (m_CamTrig[dispNum] == CAMERA_TRIG_CONTINUOUS)
@@ -710,12 +708,13 @@ BOOL CSmall_StudioDlg::DrawImageSeq(int dispNum)
 		// hbitmap2CImage(dispNum);
 		::LeaveCriticalSection(&mSc);
 	}
-
+	
 	return TRUE;
 }
 
 BOOL CSmall_StudioDlg::RawToGDIPBmp(int dispNum, int width, int height, BYTE* buffer)
 {
+	CString debug;
 	BitmapData bitmapdata;
 	Rect rc;
 	ColorPalette* pPalette;
@@ -729,7 +728,8 @@ BOOL CSmall_StudioDlg::RawToGDIPBmp(int dispNum, int width, int height, BYTE* bu
 	m_vidwidth[dispNum] = width;
 	m_vidheight[dispNum] = height;
 
-	m_pBitmap[dispNum] = new Bitmap(m_vidwidth[dispNum], height, PixelFormat8bppIndexed);
+	m_pBitmap[dispNum] = new Bitmap(width, height, PixelFormat8bppIndexed);
+
 	rc = Rect(0, 0, width, height);
 	m_pBitmap[dispNum]->LockBits(&rc, 0, PixelFormat8bppIndexed, &bitmapdata);
 	memcpy(bitmapdata.Scan0, buffer, width*height);
@@ -841,7 +841,7 @@ void CSmall_StudioDlg::OnBnClickedDebugdragon()
 	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
 }
 
-// dispNum번에 해당하는 카메라 객체 전용 조명 컨트롤러 명령 송신기
+// dispNum번에 해당하는 카메라 객체 전용 조명 컨트롤러 명령 송신기. Connect 됐을 때만 동작합니다.
 // OnOff TRUE : Option에서 설정된 밝기로 개별 Channel 제어 프로토콜 송신
 // OnOff FALSE : 밝기 0으로 개별 Channel 제어 프로토콜 송신. 20201105 장한결
 BOOL CSmall_StudioDlg::LightSend(int dispNum, BOOL OnOff)

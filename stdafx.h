@@ -57,14 +57,16 @@ enum OPTION_READ_MODE
 #ifndef _AFX_NO_AFXCMN_SUPPORT
 #include <afxcmn.h>             // Windows 공용 컨트롤에 대한 MFC 지원입니다.
 #endif // _AFX_NO_AFXCMN_SUPPORT
+
+#include <afxcontrolbars.h>     // MFC의 리본 및 컨트롤 막대 지원
+
 // GDI+
 #include <gdiplus.h>
 #pragma comment(lib, "gdiplus")
 using namespace Gdiplus;
 //
-#include <afxcontrolbars.h>     // MFC의 리본 및 컨트롤 막대 지원
 #include "VirtualFG40.h" // Crevis Camera용 SDK include
-#include "OptionDlg.h"
+
 
 
 #ifdef _UNICODE
