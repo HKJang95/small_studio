@@ -47,7 +47,7 @@ private:
 	CString			GetExePath();
 	BOOL			GetOptionValue(int mode);
 	BOOL			GetOptionValue(int mode, int dispNum);
-	BOOL			DrawImageSeq(int dispNum);
+	
 //	BOOL			DIBMake(int dispNum);
 //	BOOL			hbitmap2CImage(int dispNum);
 	BOOL			LightCtrl(int dispNum);
@@ -57,7 +57,6 @@ private:
 
 public:
 	bool			m_IsSystemInit;		// Camera SDK Init 상태 점검입니다.
-	BOOL			m_DrawCommand[MAXCAM]; // invalidate 호출용 BOOL
 	BOOL			m_IsOpen[MAXCAM];	// 카메라 Open 여부
 	BOOL			m_IsPlay[MAXCAM];	// Play 여부 (Grab & Show)
 	INT32			m_vidwidth[MAXCAM];
@@ -68,14 +67,14 @@ public:
 	CString			m_strErr;			// 출력할 에러 String입니다
 
 	CString			m_optionPath;		// option.ini 파일의 path (초기 실행시 한 번만 받아옴)
-
+	
 	BYTE*			m_pBit[MAXCAM];		// 이미지버퍼
 	HBITMAP			m_hBmp[MAXCAM];
 //	CImage*			m_pCOriImage[MAXCAM]; // 이미지 객체
 	CLightCtrl*		m_pLightCtrl;		 // Serial port Control용 객체
 
-	HANDLE			m_hContThread;		// Continuous mode용 thread
-	HANDLE			m_TriggerThread;	// Trigger Mode용 thread
+	HANDLE			m_hPlayThread[MAXCAM];		// Continuous mode용 thread
+	HANDLE			m_hPlayTerminate[MAXCAM];
 
 	// GDI+
 	CRect			m_rcDisp[MAXCAM];
@@ -95,5 +94,6 @@ public:
 	CString			m_CamLightCh[MAXCAM]; // 카메라 별 사용할 Light Channel number입니다.
 	////////////////////////////////////////////////////////////////////////////////////////////////
 	CRITICAL_SECTION mSc;
+	BOOL			DrawImageSeq(int dispNum);
 	afx_msg void OnBnClickedDebugdragon();
 };
