@@ -18,10 +18,16 @@
 
 void Screen1ThreadProc(CSmall_StudioDlg* pPrivate)
 {
+	CString m_strErr;
+	m_strErr.Format(_T("threadproc_1\n\n"));
+	OutputDebugString(m_strErr);
 	pPrivate->thread1proc();
 }
 void Screen2ThreadProc(CSmall_StudioDlg* pPrivate)
 {
+	CString m_strErr;
+	m_strErr.Format(_T("threadproc_2\n\n"));
+	OutputDebugString(m_strErr);
 	pPrivate->thread2proc();
 }
 
@@ -85,6 +91,8 @@ CSmall_StudioDlg::CSmall_StudioDlg(CWnd* pParent /*=NULL*/)
 		m_pBitmap[i] = NULL;
 		m_hPlayThread[i] = NULL;
 		m_hPlayTerminate[i] = CreateEvent(NULL, true, false, _T("TERMINATE_PLAY_%d"));
+		m_strErr.Format(_T("TERMINATE_PLAY_%d\n\n\n"), i);
+		OutputDebugString(m_strErr);
 	}
 
 	for (int i = 0; i < LIGHTCH; i++)
@@ -126,6 +134,8 @@ BOOL CSmall_StudioDlg::OnInitDialog()
 	{
 //		m_pCOriImage[i] = new CImage();
 		ResetEvent(m_hPlayTerminate[i]);
+		m_strErr.Format(_T("resetevent_%d\n\n"), i);
+		OutputDebugString(m_strErr);
 		if (i == 0)
 		{
 			static CClientDC dispDC(GetDlgItem(IDC_PIC1));
@@ -227,6 +237,10 @@ void CSmall_StudioDlg::OnPaint()
 			{
 				if (m_IsPlay[i])
 				{
+					m_strErr.Format(_T("onpaint_%d__\n\n"), i);
+					OutputDebugString(m_strErr);
+					m_strErr.Format(_T("drawimage_%d\n\n"), i);
+					OutputDebugString(m_strErr);
 					DrawImageSeq(i);
 					if (m_CamTrig[i] == CAMERA_TRIG_SW)
 					{
@@ -302,7 +316,6 @@ void CSmall_StudioDlg::OnDestroy()
 
 BOOL CSmall_StudioDlg::camOpenSeq(int dispNum)
 {
-	
 	if (!m_IsSystemInit)
 	{
 		AfxMessageBox(_T("System Init이 되지 않았습니다. 카메라를 사용할 수 없습니다."));
@@ -536,6 +549,8 @@ void CSmall_StudioDlg::OnBnClickedCam1play()
 			WaitForSingleObject(m_hPlayThread[dispNum], INFINITE);
 			CloseHandle(m_hPlayThread[dispNum]);
 			m_hPlayThread[dispNum] = NULL;
+			m_strErr.Format(_T("suspend_%d_\n\n"), dispNum);
+			OutputDebugString(m_strErr);
 		}
 		m_IsPlay[dispNum] = FALSE;
 	}
@@ -549,9 +564,13 @@ void CSmall_StudioDlg::OnBnClickedCam1play()
 			WaitForSingleObject(m_hPlayThread[dispNum], INFINITE);
 			CloseHandle(m_hPlayThread[dispNum]);
 			m_hPlayThread[dispNum] = NULL;
+			m_strErr.Format(_T("reset_%d_\n\n"), dispNum);
+			OutputDebugString(m_strErr);
 		}
 		m_IsPlay[dispNum] = TRUE;
 		GetDlgItem(IDC_CAM1PLAY)->SetWindowTextW(_T("Stop"));
+		m_strErr.Format(_T("threadmake_%d_\n\n"), dispNum);
+		OutputDebugString(m_strErr);
 		ResetEvent(m_hPlayTerminate[dispNum]);
 		m_hPlayThread[dispNum] = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)Screen1ThreadProc, this, 0, NULL);
 		// 스레드 동작
@@ -574,6 +593,8 @@ void CSmall_StudioDlg::OnBnClickedCam2play()
 			WaitForSingleObject(m_hPlayThread[dispNum], INFINITE);
 			CloseHandle(m_hPlayThread[dispNum]);
 			m_hPlayThread[dispNum] = NULL;
+			m_strErr.Format(_T("reset_%d__\n\n"), dispNum);
+			OutputDebugString(m_strErr);
 		}
 		m_IsPlay[dispNum] = FALSE;
 	}
@@ -590,6 +611,8 @@ void CSmall_StudioDlg::OnBnClickedCam2play()
 		}
 		m_IsPlay[dispNum] = TRUE;
 		GetDlgItem(IDC_CAM2PLAY)->SetWindowTextW(_T("Stop"));
+		m_strErr.Format(_T("threadmake_%d__\n\n"), dispNum);
+		OutputDebugString(m_strErr);
 		ResetEvent(m_hPlayTerminate[dispNum]);
 		m_hPlayThread[dispNum] = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)Screen2ThreadProc, this, 0, NULL);
 		// 스레드 동작
@@ -647,6 +670,8 @@ BOOL CSmall_StudioDlg::DrawImageSeq(int dispNum)
 	// continuous mode 구현중 20201106 장한결
 	else if (m_CamTrig[dispNum] == CAMERA_TRIG_CONTINUOUS)
 	{
+		m_strErr.Format(_T("inside_drawimage_%d__\n\n"), dispNum);
+		OutputDebugString(m_strErr);
 		if (m_pCamCtrl[dispNum]->GrabImageContinuous())
 		{
 			::LeaveCriticalSection(&mSc);
@@ -664,6 +689,8 @@ BOOL CSmall_StudioDlg::DrawImageSeq(int dispNum)
 
 void CSmall_StudioDlg::thread1proc()
 {
+	m_strErr.Format(_T("threadproc_func_%d__\n\n", dispNum));
+	OutputDebugString(m_strErr);
 	int dispNum = 0;
 	if (m_CamTrig[dispNum] == CAMERA_TRIG_SW)
 	{
@@ -675,6 +702,8 @@ void CSmall_StudioDlg::thread1proc()
 		LightSend(dispNum, TRUE);
 		while (WaitForSingleObject(m_hPlayTerminate[dispNum], 0) != WAIT_OBJECT_0)
 		{
+			m_strErr.Format(_T("inside_while_%d__\n\n"), dispNum);
+			OutputDebugString(m_strErr);
 			InvalidateRect(m_rcDisp[dispNum], NULL);
 		}
 	}
@@ -686,7 +715,10 @@ void CSmall_StudioDlg::thread1proc()
 
 void CSmall_StudioDlg::thread2proc()
 {
+
 	int dispNum = 1;
+	m_strErr.Format(_T("threadproc_func_%d__\n\n"), dispNum);
+	OutputDebugString(m_strErr);
 	if (m_CamTrig[dispNum] == CAMERA_TRIG_SW)
 	{
 		Sleep(10);
@@ -697,6 +729,8 @@ void CSmall_StudioDlg::thread2proc()
 		LightSend(dispNum, TRUE);
 		while (WaitForSingleObject(m_hPlayTerminate[dispNum], 0) != WAIT_OBJECT_0)
 		{
+			m_strErr.Format(_T("inside_while_%d__\n\n"), dispNum);
+			OutputDebugString(m_strErr);
 			InvalidateRect(m_rcDisp[dispNum], NULL);
 		}
 	}
