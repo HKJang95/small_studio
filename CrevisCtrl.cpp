@@ -144,74 +144,6 @@ CAMERA_ERRCODE CCrevisCtrl::OpenDevice()
 	return CAMERA_IP_NOTFOUND;
 }
 
-BOOL CCrevisCtrl::TriggerSet(INT32 Trigger)
-{
-	INT32 currentTrig;
-	if (m_IsDeviceOpen)
-	{
-		if (Trigger == CAMERA_TRIG_CONTINUOUS)
-		{
-			currentTrig = GetTriggerStatus();
-			if (currentTrig == CAMERA_TRIG_CONTINUOUS)
-			{
-				return TRUE;
-			}
-			else if (currentTrig == CAMERA_TRIG_SW)
-			{
-				TriggerOff();
-				return TRUE;
-			}
-			else
-			{
-				return FALSE;
-			}
-		}
-
-		else if (Trigger == CAMERA_TRIG_SW)
-		{
-			currentTrig = GetTriggerStatus();
-			if (currentTrig == CAMERA_TRIG_SW)
-			{
-				return TRUE;
-			}
-			else if (currentTrig == CAMERA_TRIG_CONTINUOUS)
-			{
-				SetSWTrigger();
-				return TRUE;
-			}
-			else
-			{
-				return FALSE;
-			}
-		}
-		else
-		{
-			return FALSE;
-		}
-	}
-	else
-	{
-		return FALSE;
-	}
-}
-
-BOOL CCrevisCtrl::TriggerOff()
-{
-	if (m_IsDeviceOpen)
-	{
-		m_status = ST_SetEnumReg(m_hDevice, MCAM_TRIGGER_MODE, TRIGGER_MODE_OFF);
-		if (m_status != MCAM_ERR_SUCCESS)
-		{
-			return FALSE;
-		}
-		return TRUE;
-	}
-	else
-	{
-		return FALSE;
-	}
-}
-
 // Trigger mode setting 입니다. 20201102 장한결
 BOOL CCrevisCtrl::SetSWTrigger()
 {
@@ -229,6 +161,12 @@ BOOL CCrevisCtrl::SetSWTrigger()
 		{
 			return FALSE;
 		}
+		m_status = ST_GrabStartAsync(m_hDevice, -1);
+		if (m_status != MCAM_ERR_SUCCESS)
+		{
+			return FALSE;
+		}
+
 		return TRUE;
 	}
 	else
@@ -299,38 +237,29 @@ BOOL CCrevisCtrl::SetDeviceExposure(DOUBLE ExposeTime)
 	return TRUE;
 }
 
+// SW Trigger mode로 이미지 grab.
+// Sleep가 있으므로 Thread와 함께 사용할 것.
 BOOL CCrevisCtrl::GrabImageSW()
 {
+	CString debug;
 	if (m_IsDeviceOpen)
 	{
+	
 		m_status = ST_SetCmdReg(m_hDevice, MCAM_TRIGGER_SOFTWARE);
 		if (m_status != MCAM_ERR_SUCCESS)
 		{
+			debug.Format(_T("errcode 1 : %d\n"), m_status);
+			OutputDebugString(debug);
 			return FALSE;
 		}
 
-		Sleep(1);
+		Sleep(5);
 
 		m_status = ST_GrabImageAsync(m_hDevice, m_pImage, m_bufferSize, -1);
 		if (m_status != MCAM_ERR_SUCCESS)
 		{
-			return FALSE;
-		}
-		return TRUE;
-	}
-	else
-	{
-		return FALSE;
-	}
-}
-
-BOOL CCrevisCtrl::GrabImageContinuous()
-{
-	if (m_IsDeviceOpen)
-	{
-		m_status = ST_GrabImage(m_hDevice, m_pImage, m_bufferSize);
-		if (m_status != MCAM_ERR_SUCCESS)
-		{
+			debug.Format(_T("errcode 2 : %d\n"), m_status);
+			OutputDebugString(debug);
 			return FALSE;
 		}
 		return TRUE;

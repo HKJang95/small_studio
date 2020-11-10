@@ -13,8 +13,6 @@ public:
 	CAMERA_ERRCODE	CloseDevice();
 	DOUBLE			GetDeviceExposure();
 	BOOL			SetDeviceExposure(DOUBLE ExposeTime);
-	BOOL			TriggerSet(INT32 Trigger);
-	BOOL			TriggerOff();
 	BOOL			GrabImageSW();
 	BOOL			SetSWTrigger();
 	BOOL			GrabImageContinuous();

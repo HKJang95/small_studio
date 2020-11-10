@@ -311,7 +311,7 @@ BOOL CSmall_StudioDlg::camOpenSeq(int dispNum)
 	m_statusCode = m_pCamCtrl[dispNum]->OpenDevice();
 	m_strErr.Format(_T("!!!!!!!!!!!!!!!!!!!!! DEBUG %d Cam status : %d !!!!!!!!!!!!!!!!!\n"), dispNum, m_statusCode);
 	OutputDebugString(m_strErr);
-	m_pCamCtrl[dispNum]->TriggerSet(m_CamTrig[dispNum]);
+	m_pCamCtrl[dispNum]->SetSWTrigger();
 
 	if (m_statusCode != CAMERA_OPEN_SUCCESS)
 	{
@@ -463,10 +463,7 @@ void CSmall_StudioDlg::OnBnClickedOptionbtn()
 				// Exposure time의 경우 바로 반영됩니다. 20201103 장한결
 				if (m_IsOpen[i])
 				{
-					if (!m_IsPlay[i])
-					{
-						m_pCamCtrl[i]->TriggerSet(m_CamTrig[i]);
-					}
+					m_pCamCtrl[i]->SetDeviceExposure(m_CamExposure[i]);
 				}
 			}
 		}
@@ -647,7 +644,7 @@ BOOL CSmall_StudioDlg::DrawImageSeq(int dispNum)
 	// continuous mode 구현중 20201106 장한결
 	else if (m_CamTrig[dispNum] == CAMERA_TRIG_CONTINUOUS)
 	{
-		if (!m_pCamCtrl[dispNum]->GrabImageContinuous())
+		if (!m_pCamCtrl[dispNum]->GrabImageSW())
 		{
 			::LeaveCriticalSection(&mSc);
 			return FALSE;
