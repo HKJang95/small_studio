@@ -70,6 +70,7 @@ CSmall_StudioDlg::CSmall_StudioDlg(CWnd* pParent /*=NULL*/)
 	, m_ComPort(_T(""))
 	, m_IsSerialOpen(FALSE)
 	, m_optionmodal(FALSE)
+	, TestFlag(FALSE)
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 
@@ -221,21 +222,7 @@ void CSmall_StudioDlg::OnPaint()
 	}
 	else
 	{
-		for (int i = 0; i < MAXCAM; i++)
-		{
-			if (m_IsOpen[i])
-			{
-				if (m_IsPlay[i])
-				{
-					DrawImageSeq(i);
-					if (m_CamTrig[i] == CAMERA_TRIG_SW)
-					{
-						m_IsPlay[i] = FALSE;
-					}
-					break;
-				}
-			}
-		}
+		
 		CDialogEx::OnPaint();
 	}
 }
@@ -602,6 +589,15 @@ BOOL CSmall_StudioDlg::DrawImageSeq(int dispNum)
 	::EnterCriticalSection(&mSc);
 	if (m_CamTrig[dispNum] == CAMERA_TRIG_SW)
 	{
+		if (dispNum == 0)
+		{
+			GetDlgItem(IDC_CAM1PLAY)->EnableWindow(FALSE);
+		}
+		else if (dispNum == 1)
+		{
+			GetDlgItem(IDC_CAM2PLAY)->EnableWindow(FALSE);
+		}
+
 		// 조명 On
 		LightSend(dispNum, TRUE);
 		// Image Grab
@@ -626,12 +622,15 @@ BOOL CSmall_StudioDlg::DrawImageSeq(int dispNum)
 		// hbitmap2CImage(dispNum);
 		RawToGDIPBmp(dispNum, m_pCamCtrl[dispNum]->m_camWidth, m_pCamCtrl[dispNum]->m_camHeight, m_pCamCtrl[dispNum]->m_pImage);
 		m_pGraphics[dispNum]->DrawImage(m_pBitmap[dispNum], 0, 0, m_vidwidth[dispNum], m_vidheight[dispNum]);
+		m_IsPlay[dispNum] = FALSE;
 		if (dispNum == 0)
 		{
+			GetDlgItem(IDC_CAM1PLAY)->EnableWindow(TRUE);
 			GetDlgItem(IDC_CAM1PLAY)->SetWindowTextW(_T("Play"));
 		}
 		else if (dispNum == 1)
 		{
+			GetDlgItem(IDC_CAM2PLAY)->EnableWindow(TRUE);
 			GetDlgItem(IDC_CAM2PLAY)->SetWindowTextW(_T("Play"));
 		}
 		else
@@ -664,16 +663,20 @@ void CSmall_StudioDlg::thread1proc()
 	int dispNum = 0;
 	if (m_CamTrig[dispNum] == CAMERA_TRIG_SW)
 	{
-		Sleep(10);
-		InvalidateRect(m_rcDisp[dispNum], NULL);
+		DrawImageSeq(dispNum);
 	}
 	else if (m_CamTrig[dispNum] == CAMERA_TRIG_CONTINUOUS)
 	{
 		LightSend(dispNum, TRUE);
 		while (WaitForSingleObject(m_hPlayTerminate[dispNum], 0) != WAIT_OBJECT_0)
 		{
-			Sleep(10);
-			InvalidateRect(m_rcDisp[dispNum], NULL);
+			if (TestFlag)
+			{
+				OutputDebugString(_T("Debug\n\n"));
+				TestFlag = FALSE;
+			}
+			Sleep(5);
+			DrawImageSeq(dispNum);
 		}
 	}
 	else
@@ -688,16 +691,15 @@ void CSmall_StudioDlg::thread2proc()
 	int dispNum = 1;
 	if (m_CamTrig[dispNum] == CAMERA_TRIG_SW)
 	{
-		Sleep(10);
-		InvalidateRect(m_rcDisp[dispNum], NULL);
+		DrawImageSeq(dispNum);
 	}
 	else if (m_CamTrig[dispNum] == CAMERA_TRIG_CONTINUOUS)
 	{
 		LightSend(dispNum, TRUE);
 		while (WaitForSingleObject(m_hPlayTerminate[dispNum], 0) != WAIT_OBJECT_0)
 		{
-			Sleep(10);
-			InvalidateRect(m_rcDisp[dispNum], NULL);
+			Sleep(5);
+			DrawImageSeq(dispNum);
 		}
 	}
 	else
@@ -954,6 +956,7 @@ BOOL CSmall_StudioDlg::hbitmap2CImage(int dispNum)
 */
 void CSmall_StudioDlg::OnBnClickedDebugdragon()
 {
+	TestFlag = TRUE;
 	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
 }
 

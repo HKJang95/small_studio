@@ -75,6 +75,7 @@ public:
 
 	HANDLE			m_hPlayThread[MAXCAM];		// Continuous mode¿ë thread
 	HANDLE			m_hPlayTerminate[MAXCAM];
+	BOOL TestFlag;
 
 	// GDI+
 	CRect			m_rcDisp[MAXCAM];
