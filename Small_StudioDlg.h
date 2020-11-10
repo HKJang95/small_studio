@@ -8,6 +8,7 @@
 #include "Small_StudioDlg.h"
 #include "Small_Studio.h"
 #include "OptionDlg.h"
+#include "MyImageView.h"
 
 
 // CSmall_StudioDlg 대화 상자
@@ -102,4 +103,5 @@ public:
 	void			Cam2OpenProc();
 	
 	afx_msg void OnBnClickedDebugdragon();
+	afx_msg void OnMouseMove(UINT nFlags, CPoint point);
 };

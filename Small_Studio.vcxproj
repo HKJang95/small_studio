@@ -280,6 +280,7 @@
   <ItemGroup>
     <ClInclude Include="CrevisCtrl.h" />
     <ClInclude Include="LightCtrl.h" />
+    <ClInclude Include="MyImageView.h" />
     <ClInclude Include="OptionDlg.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="Small_Studio.h" />
@@ -290,6 +291,7 @@
   <ItemGroup>
     <ClCompile Include="CrevisCtrl.cpp" />
     <ClCompile Include="LightCtrl.cpp" />
+    <ClCompile Include="MyImageView.cpp" />
     <ClCompile Include="OptionDlg.cpp" />
     <ClCompile Include="Small_Studio.cpp" />
     <ClCompile Include="Small_StudioDlg.cpp" />

@@ -123,6 +123,7 @@ BEGIN_MESSAGE_MAP(CSmall_StudioDlg, CDialogEx)
 	ON_WM_DESTROY()
 	ON_MESSAGE(WM_MYRECEIVE, OnReceive)
 	ON_BN_CLICKED(IDC_DEBUGDRAGON, &CSmall_StudioDlg::OnBnClickedDebugdragon)
+	ON_WM_MOUSEMOVE()
 END_MESSAGE_MAP()
 
 
@@ -1042,4 +1043,53 @@ LRESULT	CSmall_StudioDlg::OnReceive(WPARAM length, LPARAM lpara)
 	}
 
 	return 0;
+}
+
+
+
+void CSmall_StudioDlg::OnMouseMove(UINT nFlags, CPoint point)
+{
+	CPoint insidePoint;
+	Color color;
+	CString textToDraw = _T("");
+	for (int i = 0; i < MAXCAM; i++)
+	{
+		if (m_pBitmap[i] != NULL)
+		{
+			if (point.x > m_rcDisp[i].TopLeft().x && point.y > m_rcDisp[i].TopLeft().y)
+			{
+				if (point.x < m_rcDisp[i].BottomRight().x && point.y < m_rcDisp[i].BottomRight().y)
+				{
+					StringFormat SF;
+					Bitmap* b;
+					b = new Bitmap(m_vidwidth[i], m_vidheight[i], PixelFormat8bppIndexed);
+					///////////////
+					// bitmap 만들어서 갱신해야됨 (텍스트 계속 overlap됨)
+
+					insidePoint.x = point.x - m_rcDisp[i].TopLeft().x;
+					insidePoint.y = point.y - m_rcDisp[i].TopLeft().y;
+
+					Graphics textG(m_pBitmap[i]);
+					textG.SetTextRenderingHint(TextRenderingHintSingleBitPerPixel);
+					Gdiplus::Font F(L"Palatino Linotype Bold", 15, FontStyleBold, UnitPixel);
+					RectF R(10, 10, 100, 20);
+
+					SF.SetAlignment(StringAlignmentCenter);
+					SF.SetLineAlignment(StringAlignmentCenter);
+
+					SolidBrush B(Color(0, 0, 0));
+					m_pBitmap[i]->GetPixel(insidePoint.x, insidePoint.y, &color);
+					textToDraw.Format(_T("%d, %d : %d"), insidePoint.x, insidePoint.y, color.GetR());
+					textG.DrawString(textToDraw, -1, &F, R, &SF, &B);
+					m_pGraphics[i]->DrawImage(m_pBitmap[i], 0, 0, m_vidwidth[i], m_vidheight[i]);
+					delete b;
+					b = NULL;
+				}
+			}
+		}
+
+		
+	}
+
+	CDialogEx::OnMouseMove(nFlags, point);
 }

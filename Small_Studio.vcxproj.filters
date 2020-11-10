@@ -42,6 +42,9 @@
     <ClInclude Include="LightCtrl.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
+    <ClInclude Include="MyImageView.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Small_Studio.cpp">
@@ -60,6 +63,9 @@
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="LightCtrl.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="MyImageView.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
   </ItemGroup>
