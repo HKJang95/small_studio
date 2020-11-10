@@ -16,6 +16,7 @@
 */
 // 응용 프로그램 정보에 사용되는 CAboutDlg 대화 상자입니다.
 
+// 1번 Screen (좌측)에서 Play 되는 이미지용 스레드 실행 20201110 장한결
 void Screen1ThreadProc(CSmall_StudioDlg* pPrivate)
 {
 	pPrivate->thread1proc();
@@ -25,6 +26,16 @@ void Screen2ThreadProc(CSmall_StudioDlg* pPrivate)
 	pPrivate->thread2proc();
 }
 
+
+void Cam1OpenThreadProc(CSmall_StudioDlg* pPrivate)
+{
+	pPrivate->Cam1OpenProc();
+}
+
+void Cam2OpenThreadProc(CSmall_StudioDlg* pPrivate)
+{
+	pPrivate->Cam2OpenProc();
+}
 
 class CAboutDlg : public CDialogEx
 {
@@ -70,7 +81,6 @@ CSmall_StudioDlg::CSmall_StudioDlg(CWnd* pParent /*=NULL*/)
 	, m_ComPort(_T(""))
 	, m_IsSerialOpen(FALSE)
 	, m_optionmodal(FALSE)
-	, TestFlag(FALSE)
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 
@@ -86,6 +96,7 @@ CSmall_StudioDlg::CSmall_StudioDlg(CWnd* pParent /*=NULL*/)
 		m_pBitmap[i] = NULL;
 		m_hPlayThread[i] = NULL;
 		m_hPlayTerminate[i] = CreateEvent(NULL, true, false, _T("TERMINATE_PLAY_%d"));
+		m_hOpenThread[i] = NULL;
 	}
 
 	for (int i = 0; i < LIGHTCH; i++)
@@ -233,7 +244,6 @@ HCURSOR CSmall_StudioDlg::OnQueryDragIcon()
 {
 	return static_cast<HCURSOR>(m_hIcon);
 }
-
 void CSmall_StudioDlg::OnDestroy()
 {
 	CDialogEx::OnDestroy();
@@ -277,9 +287,7 @@ void CSmall_StudioDlg::OnDestroy()
 			delete m_pBitmap[i];
 			m_pBitmap[i] = NULL;
 		}
-
 	}
-
 	if (m_IsSystemInit)
 	{
 		ST_FreeSystem();
@@ -321,83 +329,24 @@ BOOL CSmall_StudioDlg::camOpenSeq(int dispNum)
 void CSmall_StudioDlg::OnBnClickedCam1open()
 {
 	int dispNum = 0;
-	GetDlgItem(IDC_CAM1OPEN)->EnableWindow(FALSE);
-	// Option.ini 파일을 읽어 Open시 필요한 정보를 읽습니다.
-	GetOptionValue(OPT_READ_CAM, dispNum);
-	if (!m_IsOpen[dispNum])
+	if (m_hOpenThread[dispNum] != NULL)
 	{
-		if (camOpenSeq(dispNum))
-		{
-			GetDlgItem(IDC_CAM1OPEN)->SetWindowTextW(_T("Camera 1 Open"));
-			GetDlgItem(IDC_CAM1PLAY)->EnableWindow(TRUE);
-		}
-		else
-		{
-			m_strErr.Format(_T("카메라 Open 실패!"));
-			AfxMessageBox(m_strErr);
-		}
+		CloseHandle(m_hOpenThread[dispNum]);
+		m_hOpenThread[dispNum] = NULL;
 	}
-	else
-	{
-		if (m_hPlayThread[dispNum] != NULL)
-		{
-			// Thread Suspend
-			SetEvent(m_hPlayTerminate[dispNum]);
-			WaitForSingleObject(m_hPlayThread[dispNum], INFINITE);
-			CloseHandle(m_hPlayThread[dispNum]);
-			m_hPlayThread[dispNum] = NULL;
-		}
-		m_IsPlay[dispNum] = FALSE;
-		delete m_pCamCtrl[dispNum];
-		m_pCamCtrl[dispNum] = NULL;
-		m_IsOpen[dispNum] = FALSE;
-		GetDlgItem(IDC_CAM1OPEN)->SetWindowTextW(_T("Camera 1 Closed"));
-		GetDlgItem(IDC_CAM1PLAY)->EnableWindow(FALSE);
-//		free(m_pBit[dispNum]);
-//		m_pBit[dispNum] = NULL;
-	}
-	GetDlgItem(IDC_CAM1OPEN)->EnableWindow(TRUE);
+	m_hOpenThread[dispNum] = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)Cam1OpenThreadProc, this, 0, NULL);
 }
 
 
 void CSmall_StudioDlg::OnBnClickedCam2open()
 {
 	int dispNum = 1;
-	GetDlgItem(IDC_CAM2OPEN)->EnableWindow(FALSE);
-	GetOptionValue(OPT_READ_CAM, dispNum);
-	if (!m_IsOpen[dispNum])
+	if (m_hOpenThread[dispNum] != NULL)
 	{
-		if (camOpenSeq(dispNum))
-		{
-			GetDlgItem(IDC_CAM2OPEN)->SetWindowTextW(_T("Camera 2 Open"));
-			GetDlgItem(IDC_CAM2PLAY)->EnableWindow(TRUE);
-		}
-		else
-		{
-			m_strErr.Format(_T("카메라 Open 실패!"));
-			AfxMessageBox(m_strErr);
-		}
+		CloseHandle(m_hOpenThread[dispNum]);
+		m_hOpenThread[dispNum] = NULL;
 	}
-	else
-	{
-		if (m_hPlayThread[dispNum] != NULL)
-		{
-			// Thread Suspend
-			SetEvent(m_hPlayTerminate[dispNum]);
-			WaitForSingleObject(m_hPlayThread[dispNum], INFINITE);
-			CloseHandle(m_hPlayThread[dispNum]);
-			m_hPlayThread[dispNum] = NULL;
-		}
-		m_IsPlay[dispNum] = FALSE;
-		delete m_pCamCtrl[dispNum];
-		m_pCamCtrl[dispNum] = NULL;
-		m_IsOpen[dispNum] = FALSE;
-		GetDlgItem(IDC_CAM2OPEN)->SetWindowTextW(_T("Camera 2 Closed"));
-		GetDlgItem(IDC_CAM2PLAY)->EnableWindow(FALSE);
-//		free(m_pBit[dispNum]);
-//		m_pBit[dispNum] = NULL;
-	}
-	GetDlgItem(IDC_CAM2OPEN)->EnableWindow(TRUE);
+	m_hOpenThread[dispNum] = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)Cam2OpenThreadProc, this, 0, NULL);
 }
 
 
@@ -658,57 +607,6 @@ BOOL CSmall_StudioDlg::DrawImageSeq(int dispNum)
 	return TRUE;
 }
 
-void CSmall_StudioDlg::thread1proc()
-{
-	int dispNum = 0;
-	if (m_CamTrig[dispNum] == CAMERA_TRIG_SW)
-	{
-		DrawImageSeq(dispNum);
-	}
-	else if (m_CamTrig[dispNum] == CAMERA_TRIG_CONTINUOUS)
-	{
-		LightSend(dispNum, TRUE);
-		while (WaitForSingleObject(m_hPlayTerminate[dispNum], 0) != WAIT_OBJECT_0)
-		{
-			if (TestFlag)
-			{
-				OutputDebugString(_T("Debug\n\n"));
-				TestFlag = FALSE;
-			}
-			Sleep(5);
-			DrawImageSeq(dispNum);
-		}
-	}
-	else
-	{
-		return;
-	}
-}
-
-void CSmall_StudioDlg::thread2proc()
-{
-
-	int dispNum = 1;
-	if (m_CamTrig[dispNum] == CAMERA_TRIG_SW)
-	{
-		DrawImageSeq(dispNum);
-	}
-	else if (m_CamTrig[dispNum] == CAMERA_TRIG_CONTINUOUS)
-	{
-		LightSend(dispNum, TRUE);
-		while (WaitForSingleObject(m_hPlayTerminate[dispNum], 0) != WAIT_OBJECT_0)
-		{
-			Sleep(5);
-			DrawImageSeq(dispNum);
-		}
-	}
-	else
-	{
-		return;
-	}
-}
-
-
 // Option값 설정을 위한 현재 실행파일 경로 반환 20201030 장한결
 CString CSmall_StudioDlg::GetExePath()
 {
@@ -956,7 +854,6 @@ BOOL CSmall_StudioDlg::hbitmap2CImage(int dispNum)
 */
 void CSmall_StudioDlg::OnBnClickedDebugdragon()
 {
-	TestFlag = TRUE;
 	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
 }
 
@@ -996,6 +893,136 @@ BOOL CSmall_StudioDlg::LightSend(int dispNum, BOOL OnOff)
 	else
 	{
 		return FALSE;
+	}
+}
+
+
+void CSmall_StudioDlg::Cam1OpenProc()
+{
+	int dispNum = 0;
+	GetDlgItem(IDC_CAM1OPEN)->EnableWindow(FALSE);
+	// Option.ini 파일을 읽어 Open시 필요한 정보를 읽습니다.
+	GetOptionValue(OPT_READ_CAM, dispNum);
+	if (!m_IsOpen[dispNum])
+	{
+		if (camOpenSeq(dispNum))
+		{
+			GetDlgItem(IDC_CAM1OPEN)->SetWindowTextW(_T("Camera 1 Open"));
+			GetDlgItem(IDC_CAM1PLAY)->EnableWindow(TRUE);
+		}
+		else
+		{
+			m_strErr.Format(_T("카메라 Open 실패!"));
+			AfxMessageBox(m_strErr);
+		}
+	}
+	else
+	{
+		if (m_hPlayThread[dispNum] != NULL)
+		{
+			// Thread Suspend
+			SetEvent(m_hPlayTerminate[dispNum]);
+			WaitForSingleObject(m_hPlayThread[dispNum], INFINITE);
+			CloseHandle(m_hPlayThread[dispNum]);
+			m_hPlayThread[dispNum] = NULL;
+		}
+		m_IsPlay[dispNum] = FALSE;
+		delete m_pCamCtrl[dispNum];
+		m_pCamCtrl[dispNum] = NULL;
+		m_IsOpen[dispNum] = FALSE;
+		GetDlgItem(IDC_CAM1OPEN)->SetWindowTextW(_T("Camera 1 Closed"));
+		GetDlgItem(IDC_CAM1PLAY)->EnableWindow(FALSE);
+		//		free(m_pBit[dispNum]);
+		//		m_pBit[dispNum] = NULL;
+	}
+	GetDlgItem(IDC_CAM1OPEN)->EnableWindow(TRUE);
+}
+
+void CSmall_StudioDlg::Cam2OpenProc()
+{
+	int dispNum = 1;
+	GetDlgItem(IDC_CAM2OPEN)->EnableWindow(FALSE);
+	GetOptionValue(OPT_READ_CAM, dispNum);
+	if (!m_IsOpen[dispNum])
+	{
+		if (camOpenSeq(dispNum))
+		{
+			GetDlgItem(IDC_CAM2OPEN)->SetWindowTextW(_T("Camera 2 Open"));
+			GetDlgItem(IDC_CAM2PLAY)->EnableWindow(TRUE);
+		}
+		else
+		{
+			m_strErr.Format(_T("카메라 Open 실패!"));
+			AfxMessageBox(m_strErr);
+		}
+	}
+	else
+	{
+		if (m_hPlayThread[dispNum] != NULL)
+		{
+			// Thread Suspend
+			SetEvent(m_hPlayTerminate[dispNum]);
+			WaitForSingleObject(m_hPlayThread[dispNum], INFINITE);
+			CloseHandle(m_hPlayThread[dispNum]);
+			m_hPlayThread[dispNum] = NULL;
+		}
+		m_IsPlay[dispNum] = FALSE;
+		delete m_pCamCtrl[dispNum];
+		m_pCamCtrl[dispNum] = NULL;
+		m_IsOpen[dispNum] = FALSE;
+		GetDlgItem(IDC_CAM2OPEN)->SetWindowTextW(_T("Camera 2 Closed"));
+		GetDlgItem(IDC_CAM2PLAY)->EnableWindow(FALSE);
+		//		free(m_pBit[dispNum]);
+		//		m_pBit[dispNum] = NULL;
+	}
+	GetDlgItem(IDC_CAM2OPEN)->EnableWindow(TRUE);
+}
+
+
+
+// Screen1ThreadProc에서 실행되는 스레드 프로세스 20201110 장한결
+void CSmall_StudioDlg::thread1proc()
+{
+	int dispNum = 0;
+	if (m_CamTrig[dispNum] == CAMERA_TRIG_SW)
+	{
+		DrawImageSeq(dispNum);
+	}
+	else if (m_CamTrig[dispNum] == CAMERA_TRIG_CONTINUOUS)
+	{
+		LightSend(dispNum, TRUE);
+		while (WaitForSingleObject(m_hPlayTerminate[dispNum], 0) != WAIT_OBJECT_0)
+		{
+			Sleep(5);
+			DrawImageSeq(dispNum);
+		}
+	}
+	else
+	{
+		return;
+	}
+}
+
+// Screen2ThreadProc에서 실행되는 스레드 프로세스 20201110 장한결
+void CSmall_StudioDlg::thread2proc()
+{
+	int dispNum = 1;
+	if (m_CamTrig[dispNum] == CAMERA_TRIG_SW)
+	{
+		DrawImageSeq(dispNum);
+	}
+	else if (m_CamTrig[dispNum] == CAMERA_TRIG_CONTINUOUS)
+	{
+		LightSend(dispNum, TRUE);
+		while (WaitForSingleObject(m_hPlayTerminate[dispNum], 0) != WAIT_OBJECT_0)
+		{
+			Sleep(5);
+			DrawImageSeq(dispNum);
+		}
+	}
+	else
+	{
+		return;
 	}
 }
 

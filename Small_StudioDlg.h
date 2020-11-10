@@ -75,8 +75,8 @@ public:
 
 	HANDLE			m_hPlayThread[MAXCAM];		// Continuous mode용 thread
 	HANDLE			m_hPlayTerminate[MAXCAM];
-	BOOL TestFlag;
 
+	HANDLE			m_hOpenThread[MAXCAM];
 	// GDI+
 	CRect			m_rcDisp[MAXCAM];
 	HDC				m_hDC[MAXCAM];
@@ -96,7 +96,10 @@ public:
 	////////////////////////////////////////////////////////////////////////////////////////////////
 	CRITICAL_SECTION mSc;
 	BOOL			DrawImageSeq(int dispNum);
-	void			thread1proc();
-	void			thread2proc();
+	void			thread1proc(); // Screen1ThreadProc에서 실행되는 스레드 프로세스 (1번 Screen grab -> draw)
+	void			thread2proc(); // Screen2ThreadProc에서 실행되는 스레드 프로세스 (2번 Screen grab -> draw)
+	void			Cam1OpenProc();
+	void			Cam2OpenProc();
+	
 	afx_msg void OnBnClickedDebugdragon();
 };
