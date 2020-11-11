@@ -1081,6 +1081,7 @@ void CSmall_StudioDlg::OnMouseMove(UINT nFlags, CPoint point)
 					m_pBitmap[i]->GetPixel(insidePoint.x, insidePoint.y, &color);
 					textToDraw.Format(_T("%d, %d : %d"), insidePoint.x, insidePoint.y, color.GetR());
 					textG.DrawString(textToDraw, -1, &F, R, &SF, &B);
+					
 					m_pGraphics[i]->DrawImage(m_pBitmap[i], 0, 0, m_vidwidth[i], m_vidheight[i]);
 					delete b;
 					b = NULL;
