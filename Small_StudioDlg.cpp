@@ -244,9 +244,7 @@ void CSmall_StudioDlg::OnPaint()
 			{
 				if (m_CamTrig[i] == CAMERA_TRIG_SW && m_IsOverlay[i])
 				{
-					m_pImageView[i]->cloneBitmap(m_pBitmap[i]);
-					m_pImageView[i]->cursorRGB(m_CurSor, m_rcDisp[i].TopLeft(), m_rcDisp[i].BottomRight());
-					m_pGraphics[i]->DrawImage(m_pImageView[i]->returnBitmap(), 0, 0, m_pImageView[i]->returnBitmap()->GetWidth(), m_pImageView[i]->returnBitmap()->GetHeight());
+					
 				}
 			}
 		}
@@ -263,8 +261,6 @@ HCURSOR CSmall_StudioDlg::OnQueryDragIcon()
 void CSmall_StudioDlg::OnDestroy()
 {
 	CDialogEx::OnDestroy();
-
-
 
 	if (m_pLightCtrl != NULL)
 	{
