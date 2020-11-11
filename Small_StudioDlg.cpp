@@ -81,6 +81,7 @@ CSmall_StudioDlg::CSmall_StudioDlg(CWnd* pParent /*=NULL*/)
 	, m_ComPort(_T(""))
 	, m_IsSerialOpen(FALSE)
 	, m_optionmodal(FALSE)
+	, m_CurSor(NULL)
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 
@@ -97,6 +98,8 @@ CSmall_StudioDlg::CSmall_StudioDlg(CWnd* pParent /*=NULL*/)
 		m_hPlayThread[i] = NULL;
 		m_hPlayTerminate[i] = CreateEvent(NULL, true, false, _T("TERMINATE_PLAY_%d"));
 		m_hOpenThread[i] = NULL;
+		m_pImageView[i] = NULL;
+		m_IsOverlay[i] = TRUE;
 	}
 
 	for (int i = 0; i < LIGHTCH; i++)
@@ -139,6 +142,7 @@ BOOL CSmall_StudioDlg::OnInitDialog()
 	{
 //		m_pCOriImage[i] = new CImage();
 		ResetEvent(m_hPlayTerminate[i]);
+		m_pImageView[i] = new CMyImageView();
 		if (i == 0)
 		{
 			static CClientDC dispDC(GetDlgItem(IDC_PIC1));
@@ -234,7 +238,18 @@ void CSmall_StudioDlg::OnPaint()
 	}
 	else
 	{
-		
+		for (int i = 0; i < MAXCAM; i++)
+		{
+			if (m_pBitmap[i] != NULL)
+			{
+				if (m_CamTrig[i] == CAMERA_TRIG_SW && m_IsOverlay[i])
+				{
+					m_pImageView[i]->cloneBitmap(m_pBitmap[i]);
+					m_pImageView[i]->cursorRGB(m_CurSor, m_rcDisp[i].TopLeft(), m_rcDisp[i].BottomRight());
+					m_pGraphics[i]->DrawImage(m_pImageView[i]->returnBitmap(), 0, 0, m_pImageView[i]->returnBitmap()->GetWidth(), m_pImageView[i]->returnBitmap()->GetHeight());
+				}
+			}
+		}
 		CDialogEx::OnPaint();
 	}
 }
@@ -248,6 +263,9 @@ HCURSOR CSmall_StudioDlg::OnQueryDragIcon()
 void CSmall_StudioDlg::OnDestroy()
 {
 	CDialogEx::OnDestroy();
+
+
+
 	if (m_pLightCtrl != NULL)
 	{
 		m_pLightCtrl->Close();
@@ -260,6 +278,12 @@ void CSmall_StudioDlg::OnDestroy()
 
 	for (int i = 0; i < MAXCAM; i++)
 	{
+		if (m_pImageView[i] != NULL)
+		{
+			delete m_pImageView[i];
+			m_pImageView[i] = NULL;
+		}
+
 		if (m_IsOpen[i])
 		{
 			if (m_hPlayThread[i] != NULL)
@@ -571,7 +595,7 @@ BOOL CSmall_StudioDlg::DrawImageSeq(int dispNum)
 		// DIBMake(dispNum);
 		// hbitmap2CImage(dispNum);
 		RawToGDIPBmp(dispNum, m_pCamCtrl[dispNum]->m_camWidth, m_pCamCtrl[dispNum]->m_camHeight, m_pCamCtrl[dispNum]->m_pImage);
-		m_pGraphics[dispNum]->DrawImage(m_pBitmap[dispNum], 0, 0, m_vidwidth[dispNum], m_vidheight[dispNum]);
+		InvalidateRect(m_rcDisp[dispNum]);
 		m_IsPlay[dispNum] = FALSE;
 		if (dispNum == 0)
 		{
@@ -1049,47 +1073,11 @@ LRESULT	CSmall_StudioDlg::OnReceive(WPARAM length, LPARAM lpara)
 
 void CSmall_StudioDlg::OnMouseMove(UINT nFlags, CPoint point)
 {
-	CPoint insidePoint;
-	Color color;
-	CString textToDraw = _T("");
+	
 	for (int i = 0; i < MAXCAM; i++)
 	{
-		if (m_pBitmap[i] != NULL)
-		{
-			if (point.x > m_rcDisp[i].TopLeft().x && point.y > m_rcDisp[i].TopLeft().y)
-			{
-				if (point.x < m_rcDisp[i].BottomRight().x && point.y < m_rcDisp[i].BottomRight().y)
-				{
-					StringFormat SF;
-					Bitmap* b;
-					b = new Bitmap(m_vidwidth[i], m_vidheight[i], PixelFormat8bppIndexed);
-					///////////////
-					// bitmap 만들어서 갱신해야됨 (텍스트 계속 overlap됨)
-
-					insidePoint.x = point.x - m_rcDisp[i].TopLeft().x;
-					insidePoint.y = point.y - m_rcDisp[i].TopLeft().y;
-
-					Graphics textG(m_pBitmap[i]);
-					textG.SetTextRenderingHint(TextRenderingHintSingleBitPerPixel);
-					Gdiplus::Font F(L"Palatino Linotype Bold", 15, FontStyleBold, UnitPixel);
-					RectF R(10, 10, 100, 20);
-
-					SF.SetAlignment(StringAlignmentCenter);
-					SF.SetLineAlignment(StringAlignmentCenter);
-
-					SolidBrush B(Color(0, 0, 0));
-					m_pBitmap[i]->GetPixel(insidePoint.x, insidePoint.y, &color);
-					textToDraw.Format(_T("%d, %d : %d"), insidePoint.x, insidePoint.y, color.GetR());
-					textG.DrawString(textToDraw, -1, &F, R, &SF, &B);
-					
-					m_pGraphics[i]->DrawImage(m_pBitmap[i], 0, 0, m_vidwidth[i], m_vidheight[i]);
-					delete b;
-					b = NULL;
-				}
-			}
-		}
-
-		
+		m_CurSor = point;
+		InvalidateRect(m_rcDisp[i]);
 	}
 
 	CDialogEx::OnMouseMove(nFlags, point);

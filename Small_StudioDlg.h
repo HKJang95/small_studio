@@ -55,6 +55,8 @@ private:
 	BOOL			LightSend(int dispNum, BOOL OnOff);
 	BOOL			RawToGDIPBmp(int dispNum, int width, int height, BYTE* buffer);
 	LRESULT			OnReceive(WPARAM length, LPARAM lpara);
+	BOOL			m_IsOverlay[MAXCAM];
+	CPoint			m_CurSor;
 
 public:
 	bool			m_IsSystemInit;		// Camera SDK Init 상태 점검입니다.
@@ -64,6 +66,7 @@ public:
 	INT32			m_vidheight[MAXCAM];
 	BOOL			m_IsSerialOpen;		// Seiral Port Open여부
 	CCrevisCtrl*	m_pCamCtrl[MAXCAM]; // 카메라용 Class 객체 포인터입니다. 
+	CMyImageView*	m_pImageView[MAXCAM];
 	INT32			m_statusCode;		// 프로그램 에러 코드를 저장하는 변수입니다.
 	CString			m_strErr;			// 출력할 에러 String입니다
 
