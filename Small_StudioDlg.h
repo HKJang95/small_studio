@@ -104,6 +104,7 @@ public:
 	BOOL			DrawImageContinuous(int dispNum);
 	BOOL			GrabImageSWTrigger(int dispNum);
 	BOOL			DrawSingleImage(int dispNum);
+	BOOL			DrawProcessed(int dispNum);
 	void			thread1proc(); // Screen1ThreadProc에서 실행되는 스레드 프로세스 (1번 Screen grab -> draw)
 	void			thread2proc(); // Screen2ThreadProc에서 실행되는 스레드 프로세스 (2번 Screen grab -> draw)
 	void			Cam1OpenProc();

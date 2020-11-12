@@ -255,6 +255,17 @@ void CSmall_StudioDlg::OnPaint()
 					DrawSingleImage(i);
 				}
 			}
+			else
+			{
+				if (m_pBitmap[i] != NULL && m_IsOverlay)
+				{
+					DrawProcessed(i);
+				}
+				else if (m_pBitmap[i] != NULL && !m_IsOverlay)
+				{
+					DrawSingleImage(i);
+				}
+			}
 		}
 		CDialogEx::OnPaint();
 	}
@@ -611,7 +622,6 @@ BOOL CSmall_StudioDlg::GrabImageSWTrigger(int dispNum)
 	LightSend(dispNum, FALSE);
 	// DIBMake(dispNum);
 	// hbitmap2CImage(dispNum);
-
 	RawToGDIPBmp(dispNum, m_pCamCtrl[dispNum]->m_camWidth, m_pCamCtrl[dispNum]->m_camHeight, m_pCamCtrl[dispNum]->m_pImage);
 	::LeaveCriticalSection(&mSc);
 	return TRUE;
@@ -620,9 +630,20 @@ BOOL CSmall_StudioDlg::GrabImageSWTrigger(int dispNum)
 BOOL CSmall_StudioDlg::DrawSingleImage(int dispNum)
 {
 	::EnterCriticalSection(&mSc);
+
 	m_pGraphics[dispNum]->DrawImage(m_pBitmap[dispNum], 0, 0, m_vidwidth[dispNum], m_vidheight[dispNum]);
 	m_IsPlay[dispNum] = FALSE;
 	::LeaveCriticalSection(&mSc);
+	return TRUE;
+}
+
+BOOL CSmall_StudioDlg::DrawProcessed(int dispNum)
+{
+	Bitmap* b;
+	m_pImageView[dispNum]->cloneBitmap(m_pBitmap[dispNum]);
+	m_pImageView[dispNum]->cursorRGB(m_CurSor, m_rcDisp[dispNum].TopLeft(), m_rcDisp[dispNum].BottomRight());
+	b = m_pImageView[dispNum]->returnBitmap();
+	m_pGraphics[dispNum]->DrawImage(b, 0, 0, m_vidwidth[dispNum], m_vidheight[dispNum]);
 	return TRUE;
 }
 
@@ -645,7 +666,6 @@ BOOL CSmall_StudioDlg::GetOptionValue(int mode)
 {
 	if (mode == OPT_READ_ALL)
 	{
-
 		LPWSTR cBuf;
 		cBuf = new WCHAR[256];
 		for (int i = 0; i < MAXCAM; i++)
@@ -1079,8 +1099,17 @@ void CSmall_StudioDlg::OnMouseMove(UINT nFlags, CPoint point)
 	
 	for (int i = 0; i < MAXCAM; i++)
 	{
-		m_CurSor = point;
-		// InvalidateRect(m_rcDisp[i]);
+		if (point.x >= m_rcDisp[i].TopLeft().x && point.y >= m_rcDisp[i].TopLeft().y)
+		{
+			if (point.x <= m_rcDisp[i].BottomRight().x && point.y <= m_rcDisp[i].BottomRight().y)
+			{
+				if (m_CamTrig[i] == CAMERA_TRIG_SW)
+				{
+					m_CurSor = point;
+					InvalidateRect(m_rcDisp[i], NULL);
+				}
+			}
+		}
 	}
 
 	CDialogEx::OnMouseMove(nFlags, point);
