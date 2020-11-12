@@ -613,36 +613,17 @@ BOOL CSmall_StudioDlg::GrabImageSWTrigger(int dispNum)
 	// hbitmap2CImage(dispNum);
 
 	RawToGDIPBmp(dispNum, m_pCamCtrl[dispNum]->m_camWidth, m_pCamCtrl[dispNum]->m_camHeight, m_pCamCtrl[dispNum]->m_pImage);
-
-
 	::LeaveCriticalSection(&mSc);
+	return TRUE;
 }
 
 BOOL CSmall_StudioDlg::DrawSingleImage(int dispNum)
 {
 	::EnterCriticalSection(&mSc);
-
-
-
 	m_pGraphics[dispNum]->DrawImage(m_pBitmap[dispNum], 0, 0, m_vidwidth[dispNum], m_vidheight[dispNum]);
 	m_IsPlay[dispNum] = FALSE;
-	if (dispNum == 0)
-	{
-		GetDlgItem(IDC_CAM1PLAY)->EnableWindow(TRUE);
-		GetDlgItem(IDC_CAM1PLAY)->SetWindowTextW(_T("Play"));
-	}
-	else if (dispNum == 1)
-	{
-		GetDlgItem(IDC_CAM2PLAY)->EnableWindow(TRUE);
-		GetDlgItem(IDC_CAM2PLAY)->SetWindowTextW(_T("Play"));
-	}
-	else
-	{
-		::LeaveCriticalSection(&mSc);
-		m_IsPlay[dispNum] = FALSE;
-		return FALSE;
-	}
 	::LeaveCriticalSection(&mSc);
+	return TRUE;
 }
 
 
@@ -1029,6 +1010,8 @@ void CSmall_StudioDlg::thread1proc()
 	{
 		GrabImageSWTrigger(dispNum);
 		InvalidateRect(m_rcDisp[dispNum], NULL);
+		GetDlgItem(IDC_CAM1PLAY)->EnableWindow(TRUE);
+		GetDlgItem(IDC_CAM1PLAY)->SetWindowTextW(_T("Play"));
 	}
 	else if (m_CamTrig[dispNum] == CAMERA_TRIG_CONTINUOUS)
 	{
@@ -1053,6 +1036,8 @@ void CSmall_StudioDlg::thread2proc()
 	{
 		GrabImageSWTrigger(dispNum);
 		InvalidateRect(m_rcDisp[dispNum], NULL);
+		GetDlgItem(IDC_CAM2PLAY)->EnableWindow(TRUE);
+		GetDlgItem(IDC_CAM2PLAY)->SetWindowTextW(_T("Play"));
 	}
 	else if (m_CamTrig[dispNum] == CAMERA_TRIG_CONTINUOUS)
 	{
