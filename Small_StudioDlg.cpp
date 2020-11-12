@@ -87,6 +87,8 @@ CSmall_StudioDlg::CSmall_StudioDlg(CWnd* pParent /*=NULL*/)
 
 	for (int i = 0; i < MAXCAM; i++)
 	{
+		CString eventName;
+		eventName.Format(_T("TERMINATE_%d"), i);
 		m_pBit[i] = NULL;
 //		m_pCOriImage[i] = NULL;
 		m_pCamCtrl[i] = NULL;
@@ -96,7 +98,7 @@ CSmall_StudioDlg::CSmall_StudioDlg(CWnd* pParent /*=NULL*/)
 		m_IsPlay[i] = FALSE;
 		m_pBitmap[i] = NULL;
 		m_hPlayThread[i] = NULL;
-		m_hPlayTerminate[i] = CreateEvent(NULL, true, false, _T("TERMINATE_PLAY_%d"));
+		m_hPlayTerminate[i] = CreateEvent(NULL, true, false, eventName);
 		m_hOpenThread[i] = NULL;
 		m_pImageView[i] = NULL;
 		m_IsOverlay[i] = TRUE;
@@ -1005,7 +1007,7 @@ void CSmall_StudioDlg::thread1proc()
 	int dispNum = 0;
 	if (m_CamTrig[dispNum] == CAMERA_TRIG_SW)
 	{
-		DrawImageSeq(dispNum);
+		InvalidateRect(m_rcDisp[dispNum], NULL);
 	}
 	else if (m_CamTrig[dispNum] == CAMERA_TRIG_CONTINUOUS)
 	{
@@ -1028,7 +1030,7 @@ void CSmall_StudioDlg::thread2proc()
 	int dispNum = 1;
 	if (m_CamTrig[dispNum] == CAMERA_TRIG_SW)
 	{
-		DrawImageSeq(dispNum);
+		InvalidateRect(m_rcDisp[dispNum], NULL);
 	}
 	else if (m_CamTrig[dispNum] == CAMERA_TRIG_CONTINUOUS)
 	{
