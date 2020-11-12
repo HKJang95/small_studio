@@ -3,7 +3,6 @@
 //
 
 #include "stdafx.h"
-
 #include "Small_Studio.h"
 #include "Small_StudioDlg.h"
 #include "afxdialogex.h"
@@ -200,7 +199,6 @@ BOOL CSmall_StudioDlg::OnInitDialog()
 	SetIcon(m_hIcon, TRUE);			// 큰 아이콘을 설정합니다.
 	SetIcon(m_hIcon, FALSE);		// 작은 아이콘을 설정합니다.
 	// TODO: 여기에 추가 초기화 작업을 추가합니다.
-
 	return TRUE;  // 포커스를 컨트롤에 설정하지 않으면 TRUE를 반환합니다.
 }
 

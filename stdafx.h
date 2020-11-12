@@ -5,6 +5,8 @@
 #define MAXCAM 2
 #define LIGHTCH 4
 
+
+
 // 카메라 관련 에러코드 20201030 장한결
 enum CAMERA_ERRCODE 
 { 
@@ -65,7 +67,15 @@ enum OPTION_READ_MODE
 #pragma comment(lib, "gdiplus")
 using namespace Gdiplus;
 //
+
 #include "VirtualFG40.h" // Crevis Camera용 SDK include
+
+#pragma warning (disable:4819)
+#pragma warning (disable:4996)
+
+#include <opencv2/core/core.hpp>  
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/opencv.hpp>
 
 
 

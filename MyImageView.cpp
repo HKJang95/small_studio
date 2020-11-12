@@ -20,7 +20,7 @@ CMyImageView::~CMyImageView()
 
 }
 
-
+// Clone 떠서 Mat으로 변환시킴
 void CMyImageView::cloneBitmap(Bitmap* oriBitmap)
 {
 	if (oriBitmap != NULL)
@@ -30,10 +30,10 @@ void CMyImageView::cloneBitmap(Bitmap* oriBitmap)
 	else return;
 }
 
-
+// Image quality 문제로 미사용.
+// MemDC를 활용, text를 이미지 위에 띄워줌 20201112 장한결
 void CMyImageView::cursorRGB(CPoint point, CPoint rectTopLeft, CPoint rectBottomRight)
 {
-
 	if (m_pBitmap != NULL)
 	{
 		CPoint imgPoint;
@@ -46,8 +46,6 @@ void CMyImageView::cursorRGB(CPoint point, CPoint rectTopLeft, CPoint rectBottom
 			if (point.x <= rectBottomRight.x && point.y <= rectBottomRight.y)
 			{
 				StringFormat SF;
-				///////////////
-				// bitmap 만들어서 갱신해야됨 (텍스트 계속 overlap됨)
 
 				imgPoint.x = m_pBitmap->GetWidth();
 				imgPoint.y = m_pBitmap->GetHeight();
@@ -59,7 +57,7 @@ void CMyImageView::cursorRGB(CPoint point, CPoint rectTopLeft, CPoint rectBottom
 				RealPoint.y = abs(imgPoint.y * insidePoint.y / rectBottomRight.y);
 
 				Graphics textG(m_pBitmap);
-				textG.SetTextRenderingHint(TextRenderingHintSingleBitPerPixel);
+				textG.SetTextRenderingHint(TextRenderingHintAntiAlias);
 				Gdiplus::Font F(L"Palatino Linotype Bold", 15, FontStyleBold, UnitPixel);
 				RectF R(10, 10, 150, 20);
 
@@ -77,6 +75,7 @@ void CMyImageView::cursorRGB(CPoint point, CPoint rectTopLeft, CPoint rectBottom
 		return;
 }
 
+// Mat을 Bitmap* 형식으로
 Bitmap*	CMyImageView::returnBitmap()
 {
 	if (m_pBitmap != NULL)

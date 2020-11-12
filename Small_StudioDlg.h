@@ -62,7 +62,6 @@ public:
 	bool			m_IsSystemInit;		// Camera SDK Init 상태 점검입니다.
 	BOOL			m_IsOpen[MAXCAM];	// 카메라 Open 여부
 	
-	
 	BOOL			m_IsPlay[MAXCAM];	// Play 여부 (Grab & Show)
 	INT32			m_vidwidth[MAXCAM];
 	INT32			m_vidheight[MAXCAM];
