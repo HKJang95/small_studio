@@ -124,9 +124,11 @@ BEGIN_MESSAGE_MAP(CSmall_StudioDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_CAM1PLAY, &CSmall_StudioDlg::OnBnClickedCam1play)
 	ON_BN_CLICKED(IDC_CAM2PLAY, &CSmall_StudioDlg::OnBnClickedCam2play)
 	ON_WM_DESTROY()
-	ON_MESSAGE(WM_MYRECEIVE, OnReceive)
+	ON_MESSAGE(WM_MYRECEIVE, OnMyMsg)
 	ON_BN_CLICKED(IDC_DEBUGDRAGON, &CSmall_StudioDlg::OnBnClickedDebugdragon)
 	ON_WM_MOUSEMOVE()
+	ON_STN_CLICKED(IDC_PIC1, &CSmall_StudioDlg::OnStnClickedPic1)
+	ON_STN_CLICKED(IDC_PIC2, &CSmall_StudioDlg::OnStnClickedPic2)
 END_MESSAGE_MAP()
 
 
@@ -240,12 +242,9 @@ void CSmall_StudioDlg::OnPaint()
 	{
 		for (int i = 0; i < MAXCAM; i++)
 		{
-			if (m_pBitmap[i] != NULL)
+			if (m_IsPlay[i])
 			{
-				if (m_CamTrig[i] == CAMERA_TRIG_SW && m_IsOverlay[i])
-				{
-					
-				}
+				DrawImageSeq(i);
 			}
 		}
 		CDialogEx::OnPaint();
@@ -518,7 +517,7 @@ void CSmall_StudioDlg::OnBnClickedCam2play()
 {
 	int dispNum = 1;
 	GetOptionValue(OPT_READ_PLAY, dispNum);
-	if (m_IsPlay[dispNum])
+	if (m_IsPlay[dispNum] && m_CamTrig[dispNum] == CAMERA_TRIG_CONTINUOUS)
 	{
 		GetDlgItem(IDC_CAM2PLAY)->SetWindowTextW(_T("Play"));
 		if (m_hPlayThread[dispNum] != NULL)
@@ -591,7 +590,6 @@ BOOL CSmall_StudioDlg::DrawImageSeq(int dispNum)
 		// DIBMake(dispNum);
 		// hbitmap2CImage(dispNum);
 		RawToGDIPBmp(dispNum, m_pCamCtrl[dispNum]->m_camWidth, m_pCamCtrl[dispNum]->m_camHeight, m_pCamCtrl[dispNum]->m_pImage);
-		InvalidateRect(m_rcDisp[dispNum]);
 		m_IsPlay[dispNum] = FALSE;
 		if (dispNum == 0)
 		{
@@ -1015,7 +1013,7 @@ void CSmall_StudioDlg::thread1proc()
 		while (WaitForSingleObject(m_hPlayTerminate[dispNum], 0) != WAIT_OBJECT_0)
 		{
 			Sleep(5);
-			DrawImageSeq(dispNum);
+			InvalidateRect(m_rcDisp[dispNum], NULL);
 		}
 	}
 	else
@@ -1038,7 +1036,7 @@ void CSmall_StudioDlg::thread2proc()
 		while (WaitForSingleObject(m_hPlayTerminate[dispNum], 0) != WAIT_OBJECT_0)
 		{
 			Sleep(5);
-			DrawImageSeq(dispNum);
+			InvalidateRect(m_rcDisp[dispNum], NULL);
 		}
 	}
 	else
@@ -1047,7 +1045,7 @@ void CSmall_StudioDlg::thread2proc()
 	}
 }
 
-LRESULT	CSmall_StudioDlg::OnReceive(WPARAM length, LPARAM lpara)
+LRESULT	CSmall_StudioDlg::OnMyMsg(WPARAM length, LPARAM lpara)
 {
 	CString str;
 	char data[10000];
@@ -1077,4 +1075,16 @@ void CSmall_StudioDlg::OnMouseMove(UINT nFlags, CPoint point)
 	}
 
 	CDialogEx::OnMouseMove(nFlags, point);
+}
+
+
+void CSmall_StudioDlg::OnStnClickedPic1()
+{
+	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+}
+
+
+void CSmall_StudioDlg::OnStnClickedPic2()
+{
+	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
 }
