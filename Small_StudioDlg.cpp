@@ -244,9 +244,16 @@ void CSmall_StudioDlg::OnPaint()
 	{
 		for (int i = 0; i < MAXCAM; i++)
 		{
-			if (m_IsPlay[i])
+			if (m_IsPlay[i] && m_CamTrig[i] == CAMERA_TRIG_CONTINUOUS)
 			{
-				DrawImageSeq(i);
+				DrawImageContinuous(i);
+			}
+			else if (m_IsPlay[i] && m_CamTrig[i] == CAMERA_TRIG_SW)
+			{
+				if (m_pBitmap[i] != NULL)
+				{
+					DrawSingleImage(i);
+				}
 			}
 		}
 		CDialogEx::OnPaint();
@@ -554,79 +561,90 @@ void CSmall_StudioDlg::OnBnClickedCam2play()
 // Grab -> CImage -> 화면에 Draw 하는 과정 - 실패
 // Grab -> GDIPlus bitmap -> 화면에 Draw하는 과정
 // 20201105 장한결
-BOOL CSmall_StudioDlg::DrawImageSeq(int dispNum)
+BOOL CSmall_StudioDlg::DrawImageContinuous(int dispNum)
 {
-	// Software Trigger
+	// continuous mode 20201112 장한결
 	::EnterCriticalSection(&mSc);
-	if (m_CamTrig[dispNum] == CAMERA_TRIG_SW)
+	if (!m_pCamCtrl[dispNum]->GrabImageSW())
 	{
-		if (dispNum == 0)
-		{
-			GetDlgItem(IDC_CAM1PLAY)->EnableWindow(FALSE);
-		}
-		else if (dispNum == 1)
-		{
-			GetDlgItem(IDC_CAM2PLAY)->EnableWindow(FALSE);
-		}
-
-		// 조명 On
-		LightSend(dispNum, TRUE);
-		// Image Grab
-		if (!m_pCamCtrl[dispNum]->GrabImageSW())
-		{
-			::LeaveCriticalSection(&mSc);
-			return FALSE;
-		}
-
-		// 실제 처리 (MemDC Draw 등) 완료된 Image 저장할 공간 alloc
-		//		if (m_pBit[dispNum] == NULL)
-		//		{
-		//			m_pBit[dispNum] = (BYTE*)malloc(m_pCamCtrl[dispNum]->m_bufferSize);
-		//		}
-		// 처리 완료된 이미지 저장
-		// memcpy(m_pBit[dispNum], m_pCamCtrl[dispNum]->m_pImage, m_pCamCtrl[dispNum]->m_bufferSize);
-
-		Sleep(5);
-		// 조명 Off
-		LightSend(dispNum, FALSE);
-		// DIBMake(dispNum);
-		// hbitmap2CImage(dispNum);
-		RawToGDIPBmp(dispNum, m_pCamCtrl[dispNum]->m_camWidth, m_pCamCtrl[dispNum]->m_camHeight, m_pCamCtrl[dispNum]->m_pImage);
-		m_IsPlay[dispNum] = FALSE;
-		if (dispNum == 0)
-		{
-			GetDlgItem(IDC_CAM1PLAY)->EnableWindow(TRUE);
-			GetDlgItem(IDC_CAM1PLAY)->SetWindowTextW(_T("Play"));
-		}
-		else if (dispNum == 1)
-		{
-			GetDlgItem(IDC_CAM2PLAY)->EnableWindow(TRUE);
-			GetDlgItem(IDC_CAM2PLAY)->SetWindowTextW(_T("Play"));
-		}
-		else
-		{
-			::LeaveCriticalSection(&mSc);
-			m_IsPlay[dispNum] = FALSE;
-			return FALSE;
-		}
+		::LeaveCriticalSection(&mSc);
+		return FALSE;
 	}
-	// continuous mode 구현중 20201106 장한결
-	else if (m_CamTrig[dispNum] == CAMERA_TRIG_CONTINUOUS)
-	{
-		if (!m_pCamCtrl[dispNum]->GrabImageSW())
-		{
-			::LeaveCriticalSection(&mSc);
-			return FALSE;
-		}
-		RawToGDIPBmp(dispNum, m_pCamCtrl[dispNum]->m_camWidth, m_pCamCtrl[dispNum]->m_camHeight, m_pCamCtrl[dispNum]->m_pImage);
-		m_pGraphics[dispNum]->DrawImage(m_pBitmap[dispNum], 0, 0, m_vidwidth[dispNum], m_vidheight[dispNum]);
-		// DIBMake(dispNum);
-		// hbitmap2CImage(dispNum);
-		
-	}
+	RawToGDIPBmp(dispNum, m_pCamCtrl[dispNum]->m_camWidth, m_pCamCtrl[dispNum]->m_camHeight, m_pCamCtrl[dispNum]->m_pImage);
+	m_pGraphics[dispNum]->DrawImage(m_pBitmap[dispNum], 0, 0, m_vidwidth[dispNum], m_vidheight[dispNum]);
+	// DIBMake(dispNum);
+	// hbitmap2CImage(dispNum);
 	::LeaveCriticalSection(&mSc);
 	return TRUE;
 }
+// SW Trigger mode (single frame grab)
+// 20201112 장한결
+BOOL CSmall_StudioDlg::GrabImageSWTrigger(int dispNum)
+{
+	// Software Trigger
+	::EnterCriticalSection(&mSc);
+	if (dispNum == 0)
+	{
+		GetDlgItem(IDC_CAM1PLAY)->EnableWindow(FALSE);
+	}
+	else if (dispNum == 1)
+	{
+		GetDlgItem(IDC_CAM2PLAY)->EnableWindow(FALSE);
+	}
+		// 조명 On
+	LightSend(dispNum, TRUE);
+	// Image Grab
+	if (!m_pCamCtrl[dispNum]->GrabImageSW())
+	{
+		::LeaveCriticalSection(&mSc);
+		return FALSE;
+	}
+		// 실제 처리 (MemDC Draw 등) 완료된 Image 저장할 공간 alloc
+	//		if (m_pBit[dispNum] == NULL)
+	//		{
+	//			m_pBit[dispNum] = (BYTE*)malloc(m_pCamCtrl[dispNum]->m_bufferSize);
+	//		}
+	// 처리 완료된 이미지 저장
+	// memcpy(m_pBit[dispNum], m_pCamCtrl[dispNum]->m_pImage, m_pCamCtrl[dispNum]->m_bufferSize);
+		Sleep(5);
+	// 조명 Off
+	LightSend(dispNum, FALSE);
+	// DIBMake(dispNum);
+	// hbitmap2CImage(dispNum);
+
+	RawToGDIPBmp(dispNum, m_pCamCtrl[dispNum]->m_camWidth, m_pCamCtrl[dispNum]->m_camHeight, m_pCamCtrl[dispNum]->m_pImage);
+
+
+	::LeaveCriticalSection(&mSc);
+}
+
+BOOL CSmall_StudioDlg::DrawSingleImage(int dispNum)
+{
+	::EnterCriticalSection(&mSc);
+
+
+
+	m_pGraphics[dispNum]->DrawImage(m_pBitmap[dispNum], 0, 0, m_vidwidth[dispNum], m_vidheight[dispNum]);
+	m_IsPlay[dispNum] = FALSE;
+	if (dispNum == 0)
+	{
+		GetDlgItem(IDC_CAM1PLAY)->EnableWindow(TRUE);
+		GetDlgItem(IDC_CAM1PLAY)->SetWindowTextW(_T("Play"));
+	}
+	else if (dispNum == 1)
+	{
+		GetDlgItem(IDC_CAM2PLAY)->EnableWindow(TRUE);
+		GetDlgItem(IDC_CAM2PLAY)->SetWindowTextW(_T("Play"));
+	}
+	else
+	{
+		::LeaveCriticalSection(&mSc);
+		m_IsPlay[dispNum] = FALSE;
+		return FALSE;
+	}
+	::LeaveCriticalSection(&mSc);
+}
+
 
 // Option값 설정을 위한 현재 실행파일 경로 반환 20201030 장한결
 CString CSmall_StudioDlg::GetExePath()
@@ -952,6 +970,7 @@ void CSmall_StudioDlg::Cam1OpenProc()
 		m_pCamCtrl[dispNum] = NULL;
 		m_IsOpen[dispNum] = FALSE;
 		GetDlgItem(IDC_CAM1OPEN)->SetWindowTextW(_T("Camera 1 Closed"));
+		GetDlgItem(IDC_CAM1PLAY)->SetWindowTextW(_T("Play"));
 		GetDlgItem(IDC_CAM1PLAY)->EnableWindow(FALSE);
 		//		free(m_pBit[dispNum]);
 		//		m_pBit[dispNum] = NULL;
@@ -969,6 +988,7 @@ void CSmall_StudioDlg::Cam2OpenProc()
 		if (camOpenSeq(dispNum))
 		{
 			GetDlgItem(IDC_CAM2OPEN)->SetWindowTextW(_T("Camera 2 Open"));
+			GetDlgItem(IDC_CAM2PLAY)->SetWindowTextW(_T("Play"));
 			GetDlgItem(IDC_CAM2PLAY)->EnableWindow(TRUE);
 		}
 		else
@@ -1007,6 +1027,7 @@ void CSmall_StudioDlg::thread1proc()
 	int dispNum = 0;
 	if (m_CamTrig[dispNum] == CAMERA_TRIG_SW)
 	{
+		GrabImageSWTrigger(dispNum);
 		InvalidateRect(m_rcDisp[dispNum], NULL);
 	}
 	else if (m_CamTrig[dispNum] == CAMERA_TRIG_CONTINUOUS)
@@ -1030,6 +1051,7 @@ void CSmall_StudioDlg::thread2proc()
 	int dispNum = 1;
 	if (m_CamTrig[dispNum] == CAMERA_TRIG_SW)
 	{
+		GrabImageSWTrigger(dispNum);
 		InvalidateRect(m_rcDisp[dispNum], NULL);
 	}
 	else if (m_CamTrig[dispNum] == CAMERA_TRIG_CONTINUOUS)

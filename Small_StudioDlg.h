@@ -101,7 +101,9 @@ public:
 	CString			m_CamLightCh[MAXCAM]; // 카메라 별 사용할 Light Channel number입니다.
 	////////////////////////////////////////////////////////////////////////////////////////////////
 	CRITICAL_SECTION mSc;
-	BOOL			DrawImageSeq(int dispNum);
+	BOOL			DrawImageContinuous(int dispNum);
+	BOOL			GrabImageSWTrigger(int dispNum);
+	BOOL			DrawSingleImage(int dispNum);
 	void			thread1proc(); // Screen1ThreadProc에서 실행되는 스레드 프로세스 (1번 Screen grab -> draw)
 	void			thread2proc(); // Screen2ThreadProc에서 실행되는 스레드 프로세스 (2번 Screen grab -> draw)
 	void			Cam1OpenProc();
