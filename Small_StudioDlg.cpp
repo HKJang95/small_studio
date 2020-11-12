@@ -1071,7 +1071,7 @@ void CSmall_StudioDlg::OnMouseMove(UINT nFlags, CPoint point)
 	for (int i = 0; i < MAXCAM; i++)
 	{
 		m_CurSor = point;
-		InvalidateRect(m_rcDisp[i]);
+		// InvalidateRect(m_rcDisp[i]);
 	}
 
 	CDialogEx::OnMouseMove(nFlags, point);
