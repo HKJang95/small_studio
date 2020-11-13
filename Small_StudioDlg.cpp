@@ -148,19 +148,19 @@ BOOL CSmall_StudioDlg::OnInitDialog()
 		
 		if (i == 0)
 		{
-			static CClientDC dispDC(GetDlgItem(IDC_PIC1));
-			m_hDC[i] = dispDC.GetSafeHdc();
+			m_pDC[i] = new CClientDC(GetDlgItem(IDC_PIC1));
+			m_hDC[i] = m_pDC[i]->GetSafeHdc();
 			GetDlgItem(IDC_PIC1)->GetWindowRect(m_rcDisp[i]);
 			m_pGraphics[i] = Graphics::FromHDC(m_hDC[i]);
-			m_pImageView[i] = new CMyImageView(m_rcDisp[i], IDC_PIC1);
+			m_pImageView[i] = new CMyImageView();
 		}
 		if (i == 1)
 		{
-			static CClientDC dispDC(GetDlgItem(IDC_PIC2));
-			m_hDC[i] = dispDC.GetSafeHdc();
+			m_pDC[i] = new CClientDC(GetDlgItem(IDC_PIC2));
+			m_hDC[i] = m_pDC[i]->GetSafeHdc();
 			GetDlgItem(IDC_PIC2)->GetWindowRect(m_rcDisp[i]);
 			m_pGraphics[i] = Graphics::FromHDC(m_hDC[i]);
-			m_pImageView[i] = new CMyImageView(m_rcDisp[i], IDC_PIC2);
+			m_pImageView[i] = new CMyImageView();
 		}
 	}
 
@@ -326,6 +326,12 @@ void CSmall_StudioDlg::OnDestroy()
 		{
 			delete m_pBitmap[i];
 			m_pBitmap[i] = NULL;
+		}
+
+		if (m_pDC[i] != NULL)
+		{
+			delete m_pDC[i];
+			m_pDC[i] = NULL;
 		}
 	}
 	if (m_IsSystemInit)
@@ -595,7 +601,7 @@ BOOL CSmall_StudioDlg::DrawImageContinuous(int dispNum)
 		return FALSE;
 	}
 	RawToGDIPBmp(dispNum, m_pCamCtrl[dispNum]->m_camWidth, m_pCamCtrl[dispNum]->m_camHeight, m_pCamCtrl[dispNum]->m_pImage);
-	m_pGraphics[dispNum]->DrawImage(m_pBitmap[dispNum], 0, 0, m_vidwidth[dispNum], m_vidheight[dispNum]);
+	m_pGraphics[dispNum]->DrawImage(m_pBitmap[dispNum], 0, 0, m_pCamCtrl[dispNum]->m_camWidth, m_pCamCtrl[dispNum]->m_camHeight);
 	// DIBMake(dispNum);
 	// hbitmap2CImage(dispNum);
 	::LeaveCriticalSection(&mSc);
@@ -644,7 +650,11 @@ BOOL CSmall_StudioDlg::DrawSingleImage(int dispNum)
 {
 	::EnterCriticalSection(&mSc);
 	m_pImageView[dispNum]->pByteToMat(m_pCamCtrl[dispNum]->m_pImage, m_pCamCtrl[dispNum]->m_camWidth, m_pCamCtrl[dispNum]->m_camHeight);
-	m_pGraphics[dispNum]->DrawImage(m_pBitmap[dispNum], 0, 0, m_vidwidth[dispNum], m_vidheight[dispNum]);
+	m_pImageView[dispNum]->createBitmapInfo(m_pImageView[dispNum]->m_OriMat);
+	SetStretchBltMode(m_pDC[dispNum]->GetSafeHdc(), COLORONCOLOR);
+	StretchDIBits(m_pDC[dispNum]->GetSafeHdc(), 0, 0, m_rcDisp[dispNum].Width(), m_rcDisp[dispNum].Height(), 0, 0,
+		m_pImageView[dispNum]->m_OriMat.cols, m_pImageView[dispNum]->m_OriMat.rows, m_pImageView[dispNum]->m_OriMat.data,
+		m_pImageView[dispNum]->m_pBitmapInfo, DIB_RGB_COLORS, SRCCOPY);
 	m_IsPlay[dispNum] = FALSE;
 	::LeaveCriticalSection(&mSc);
 	return TRUE;
@@ -653,7 +663,11 @@ BOOL CSmall_StudioDlg::DrawSingleImage(int dispNum)
 BOOL CSmall_StudioDlg::DrawProcessed(int dispNum)
 {
 	m_pImageView[dispNum]->cvCursorRGB(m_CurSor, m_rcDisp[dispNum].TopLeft(), m_rcDisp[dispNum].BottomRight());
-	//m_pImageView[dispNum]->MatToScreen();
+	m_pImageView[dispNum]->createBitmapInfo(m_pImageView[dispNum]->m_DrawMat);
+	SetStretchBltMode(m_pDC[dispNum]->GetSafeHdc(), COLORONCOLOR);
+	StretchDIBits(m_pDC[dispNum]->GetSafeHdc(), 0, 0, m_rcDisp[dispNum].Width(), m_rcDisp[dispNum].Height(), 0, 0,
+		m_pImageView[dispNum]->m_DrawMat.cols, m_pImageView[dispNum]->m_DrawMat.rows, m_pImageView[dispNum]->m_DrawMat.data,
+		m_pImageView[dispNum]->m_pBitmapInfo, DIB_RGB_COLORS, SRCCOPY);
 	return TRUE;
 }
 
@@ -793,8 +807,6 @@ BOOL CSmall_StudioDlg::RawToGDIPBmp(int dispNum, int width, int height, BYTE* bu
 		delete m_pBitmap[dispNum];
 		m_pBitmap[dispNum] = NULL;
 	}
-	m_vidwidth[dispNum] = width;
-	m_vidheight[dispNum] = height;
 
 	m_pBitmap[dispNum] = new Bitmap(width, height, PixelFormat8bppIndexed);
 

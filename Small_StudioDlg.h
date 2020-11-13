@@ -14,17 +14,17 @@
 // CSmall_StudioDlg 대화 상자
 class CSmall_StudioDlg : public CDialogEx
 {
-// 생성입니다.
+	// 생성입니다.
 public:
 	CSmall_StudioDlg(CWnd* pParent = NULL);	// 표준 생성자입니다.
 
-// 대화 상자 데이터입니다.
+	// 대화 상자 데이터입니다.
 	enum { IDD = IDD_SMALL_STUDIO_DIALOG };
 
-	protected:
+protected:
 	virtual void DoDataExchange(CDataExchange* pDX);	// DDX/DDV 지원입니다.
 
-// 구현입니다.
+	// 구현입니다.
 protected:
 	HICON m_hIcon;
 
@@ -48,9 +48,9 @@ private:
 	CString			GetExePath();
 	BOOL			GetOptionValue(int mode);
 	BOOL			GetOptionValue(int mode, int dispNum);
-	
-//	BOOL			DIBMake(int dispNum);
-//	BOOL			hbitmap2CImage(int dispNum);
+
+	//	BOOL			DIBMake(int dispNum);
+	//	BOOL			hbitmap2CImage(int dispNum);
 	BOOL			LightCtrl(int dispNum);
 	BOOL			LightSend(int dispNum, BOOL OnOff);
 	BOOL			RawToGDIPBmp(int dispNum, int width, int height, BYTE* buffer);
@@ -61,10 +61,8 @@ private:
 public:
 	bool			m_IsSystemInit;		// Camera SDK Init 상태 점검입니다.
 	BOOL			m_IsOpen[MAXCAM];	// 카메라 Open 여부
-	
+
 	BOOL			m_IsPlay[MAXCAM];	// Play 여부 (Grab & Show)
-	INT32			m_vidwidth[MAXCAM];
-	INT32			m_vidheight[MAXCAM];
 	BOOL			m_IsSerialOpen;		// Seiral Port Open여부
 	CCrevisCtrl*	m_pCamCtrl[MAXCAM]; // 카메라용 Class 객체 포인터입니다. 
 	CMyImageView*	m_pImageView[MAXCAM];
@@ -72,11 +70,12 @@ public:
 	CString			m_strErr;			// 출력할 에러 String입니다
 
 	CString			m_optionPath;		// option.ini 파일의 path (초기 실행시 한 번만 받아옴)
-	
+
 	BYTE*			m_pBit[MAXCAM];		// 이미지버퍼
 	HBITMAP			m_hBmp[MAXCAM];
-//	CImage*			m_pCOriImage[MAXCAM]; // 이미지 객체
+	//	CImage*			m_pCOriImage[MAXCAM]; // 이미지 객체
 	CLightCtrl*		m_pLightCtrl;		 // Serial port Control용 객체
+	CClientDC*		m_pDC[MAXCAM];
 
 	HANDLE			m_hPlayThread[MAXCAM];		// Continuous mode용 thread
 	HANDLE			m_hPlayTerminate[MAXCAM];

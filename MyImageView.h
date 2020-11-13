@@ -10,25 +10,29 @@ class CMyImageView : public CWnd
 	DECLARE_DYNAMIC(CMyImageView)
 
 public:
-	CMyImageView(CRect dispRect, INT dispID);
+	CMyImageView();
 	virtual ~CMyImageView();
 
-public:
-	cv::Mat			m_OriMat; // OpenCV Mat
-	cv::Mat			m_DrawMat;
+private:
+
 	BOOL			m_larger;
 	CRect			m_DispRect;
 	INT				m_DispID;
 	int				m_rawWidth;
 	int				m_rawHeight;
+
+public:
+	cv::Mat			m_OriMat; // OpenCV Mat
+	cv::Mat			m_DrawMat;
+	BITMAPINFO*		m_pBitmapInfo;
 	int				m_showWidth; // 최종적으로 Out되는 이미지의 Size
 	int				m_showHeight;
 
 public:
 	void			pByteToMat(BYTE* imgbits, int width, int height); // m_pMat 생성 후 변환
 	void			cvCursorRGB(CPoint point, CPoint rectTopLeft, CPoint rectBottomRight);
-	BOOL			MatToScreen();
-
+	void			createBitmapInfo(cv::Mat mat);
+	
 // GDIPlus 관련 : 사용 금지 20201113 장한결
 private:
 	Bitmap*			m_pBitmap; // 원본 이미지를 clone할 Bitmap* 주소
