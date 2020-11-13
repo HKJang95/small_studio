@@ -128,8 +128,8 @@ BEGIN_MESSAGE_MAP(CSmall_StudioDlg, CDialogEx)
 	ON_MESSAGE(WM_MYRECEIVE, OnMyMsg)
 	ON_BN_CLICKED(IDC_DEBUGDRAGON, &CSmall_StudioDlg::OnBnClickedDebugdragon)
 	ON_WM_MOUSEMOVE()
-	ON_STN_CLICKED(IDC_PIC1, &CSmall_StudioDlg::OnStnClickedPic1)
-	ON_STN_CLICKED(IDC_PIC2, &CSmall_StudioDlg::OnStnClickedPic2)
+	ON_STN_DBLCLK(IDC_PIC1, &CSmall_StudioDlg::OnStnDblclickPic1)
+	ON_STN_DBLCLK(IDC_PIC2, &CSmall_StudioDlg::OnStnDblclickPic2)
 END_MESSAGE_MAP()
 
 
@@ -1125,13 +1125,14 @@ void CSmall_StudioDlg::OnMouseMove(UINT nFlags, CPoint point)
 	
 	for (int i = 0; i < MAXCAM; i++)
 	{
-		if (point.x >= m_rcDisp[i].TopLeft().x && point.y >= m_rcDisp[i].TopLeft().y)
+		if (point.x > m_rcDisp[i].TopLeft().x && point.y > m_rcDisp[i].TopLeft().y)
 		{
-			if (point.x <= m_rcDisp[i].BottomRight().x && point.y <= m_rcDisp[i].BottomRight().y)
+			if (point.x < m_rcDisp[i].BottomRight().x && point.y < m_rcDisp[i].BottomRight().y)
 			{
 				if (m_CamTrig[i] == CAMERA_TRIG_SW)
 				{
-					m_CurSor = point;
+					m_CurSor.x = point.x;
+					m_CurSor.y = point.y;
 					InvalidateRect(m_rcDisp[i], NULL);
 				}
 			}
@@ -1141,14 +1142,13 @@ void CSmall_StudioDlg::OnMouseMove(UINT nFlags, CPoint point)
 	CDialogEx::OnMouseMove(nFlags, point);
 }
 
-
-void CSmall_StudioDlg::OnStnClickedPic1()
+void CSmall_StudioDlg::OnStnDblclickPic1()
 {
 	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
 }
 
 
-void CSmall_StudioDlg::OnStnClickedPic2()
+void CSmall_StudioDlg::OnStnDblclickPic2()
 {
 	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
 }
