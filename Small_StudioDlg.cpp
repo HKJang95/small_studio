@@ -435,6 +435,11 @@ void CSmall_StudioDlg::OnBnClickedOptionbtn()
 			m_CamTrig[i] = _ttoi(optiondlg.m_CamTrig[i]);
 			m_CamLightCh[i] = optiondlg.m_CamLightCh[i];
 
+			if (m_IsPlay[i])
+			{
+				LightSend(i, TRUE);
+			}
+
 			if (m_pCamCtrl[i] != NULL)
 			{
 				// Exposure time의 경우 바로 반영됩니다. 20201103 장한결
@@ -506,6 +511,7 @@ void CSmall_StudioDlg::OnBnClickedCam1play()
 	if (m_IsPlay[dispNum])
 	{
 		GetDlgItem(IDC_CAM1PLAY)->SetWindowTextW(_T("Play"));
+		
 		if (m_hPlayThread[dispNum] != NULL)
 		{
 			// Thread Suspend
@@ -515,6 +521,7 @@ void CSmall_StudioDlg::OnBnClickedCam1play()
 			m_hPlayThread[dispNum] = NULL;
 
 		}
+		LightSend(dispNum, FALSE);
 		m_IsPlay[dispNum] = FALSE;
 	}
 
@@ -553,6 +560,7 @@ void CSmall_StudioDlg::OnBnClickedCam2play()
 			CloseHandle(m_hPlayThread[dispNum]);
 			m_hPlayThread[dispNum] = NULL;
 		}
+		LightSend(dispNum, FALSE);
 		m_IsPlay[dispNum] = FALSE;
 	}
 
@@ -974,6 +982,7 @@ void CSmall_StudioDlg::Cam1OpenProc()
 		delete m_pCamCtrl[dispNum];
 		m_pCamCtrl[dispNum] = NULL;
 		m_IsOpen[dispNum] = FALSE;
+		LightSend(dispNum, FALSE);
 		GetDlgItem(IDC_CAM1OPEN)->SetWindowTextW(_T("Camera 1 Closed"));
 		GetDlgItem(IDC_CAM1PLAY)->SetWindowTextW(_T("Play"));
 		GetDlgItem(IDC_CAM1PLAY)->EnableWindow(FALSE);
@@ -1016,6 +1025,7 @@ void CSmall_StudioDlg::Cam2OpenProc()
 		delete m_pCamCtrl[dispNum];
 		m_pCamCtrl[dispNum] = NULL;
 		m_IsOpen[dispNum] = FALSE;
+		LightSend(dispNum, FALSE);
 		GetDlgItem(IDC_CAM2OPEN)->SetWindowTextW(_T("Camera 2 Closed"));
 		GetDlgItem(IDC_CAM2PLAY)->EnableWindow(FALSE);
 		//		free(m_pBit[dispNum]);
