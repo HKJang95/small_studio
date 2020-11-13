@@ -145,13 +145,14 @@ BOOL CSmall_StudioDlg::OnInitDialog()
 	{
 //		m_pCOriImage[i] = new CImage();
 		ResetEvent(m_hPlayTerminate[i]);
-		m_pImageView[i] = new CMyImageView();
+		
 		if (i == 0)
 		{
 			static CClientDC dispDC(GetDlgItem(IDC_PIC1));
 			m_hDC[i] = dispDC.GetSafeHdc();
 			GetDlgItem(IDC_PIC1)->GetWindowRect(m_rcDisp[i]);
 			m_pGraphics[i] = Graphics::FromHDC(m_hDC[i]);
+			m_pImageView[i] = new CMyImageView(m_rcDisp[i], IDC_PIC1);
 		}
 		if (i == 1)
 		{
@@ -159,6 +160,7 @@ BOOL CSmall_StudioDlg::OnInitDialog()
 			m_hDC[i] = dispDC.GetSafeHdc();
 			GetDlgItem(IDC_PIC2)->GetWindowRect(m_rcDisp[i]);
 			m_pGraphics[i] = Graphics::FromHDC(m_hDC[i]);
+			m_pImageView[i] = new CMyImageView(m_rcDisp[i], IDC_PIC2);
 		}
 	}
 
@@ -419,6 +421,7 @@ void CSmall_StudioDlg::OnBnClickedOptionbtn()
 		optiondlg.m_pLightCtrl = NULL;
 	}
 	m_optionmodal = TRUE;
+
 	if (IDOK == optiondlg.DoModal())
 	{
 		// 옵션 setting 완료시. ini에 저장된 값 프로그램에도 반영. 20201103 장한결
@@ -449,6 +452,10 @@ void CSmall_StudioDlg::OnBnClickedOptionbtn()
 		{
 			m_OptionBright[i] = optiondlg.m_OptionBright[i];
 		}
+	}
+	else
+	{
+		m_optionmodal = FALSE;
 	}
 	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
 }
@@ -628,7 +635,7 @@ BOOL CSmall_StudioDlg::GrabImageSWTrigger(int dispNum)
 BOOL CSmall_StudioDlg::DrawSingleImage(int dispNum)
 {
 	::EnterCriticalSection(&mSc);
-
+	m_pImageView[dispNum]->pByteToMat(m_pCamCtrl[dispNum]->m_pImage, m_pCamCtrl[dispNum]->m_camWidth, m_pCamCtrl[dispNum]->m_camHeight);
 	m_pGraphics[dispNum]->DrawImage(m_pBitmap[dispNum], 0, 0, m_vidwidth[dispNum], m_vidheight[dispNum]);
 	m_IsPlay[dispNum] = FALSE;
 	::LeaveCriticalSection(&mSc);
@@ -637,11 +644,8 @@ BOOL CSmall_StudioDlg::DrawSingleImage(int dispNum)
 
 BOOL CSmall_StudioDlg::DrawProcessed(int dispNum)
 {
-	Bitmap* b;
-	m_pImageView[dispNum]->cloneBitmap(m_pBitmap[dispNum]);
-	m_pImageView[dispNum]->cursorRGB(m_CurSor, m_rcDisp[dispNum].TopLeft(), m_rcDisp[dispNum].BottomRight());
-	b = m_pImageView[dispNum]->returnBitmap();
-	m_pGraphics[dispNum]->DrawImage(b, 0, 0, m_vidwidth[dispNum], m_vidheight[dispNum]);
+	m_pImageView[dispNum]->cvCursorRGB(m_CurSor, m_rcDisp[dispNum].TopLeft(), m_rcDisp[dispNum].BottomRight());
+	//m_pImageView[dispNum]->MatToScreen();
 	return TRUE;
 }
 
@@ -893,6 +897,8 @@ BOOL CSmall_StudioDlg::hbitmap2CImage(int dispNum)
 void CSmall_StudioDlg::OnBnClickedDebugdragon()
 {
 	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+		
+
 }
 
 // dispNum번에 해당하는 카메라 객체 전용 조명 컨트롤러 명령 송신기. Connect 됐을 때만 동작합니다.

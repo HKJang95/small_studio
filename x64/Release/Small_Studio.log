@@ -1,21 +1,4 @@
-﻿Build started 2020-11-10 오후 2:37:11.
-     1>Project "C:\장한결\Small_Studio\Small_Studio\Small_Studio.vcxproj" on node 2 (Build target(s)).
-     1>ClCompile:
-         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\x86_amd64\CL.exe /c /IC:\external_libs\Crevis\include /Zi /nologo /W3 /WX- /O2 /Oi /GL /D WIN32 /D _WINDOWS /D NDEBUG /D _UNICODE /D UNICODE /D _AFXDLL /Gm- /EHsc /MD /GS /Gy /fp:precise /Zc:wchar_t /Zc:forScope /Yu"stdafx.h" /Fp"x64\Release\Small_Studio.pch" /Fo"x64\Release\\" /Fd"x64\Release\vc120.pdb" /Gd /TP /errorReport:prompt Small_StudioDlg.cpp
-         Small_StudioDlg.cpp
-       Link:
-         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\x86_amd64\link.exe /ERRORREPORT:PROMPT /OUT:"C:\장한결\Small_Studio\x64\Release\Small_Studio.exe" /INCREMENTAL:NO /NOLOGO /LIBPATH:C:\external_libs\Crevis\lib\x64 CrevisTL40.lib VirtualFG40.lib VirtualFG40CL.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /manifestinput:"C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\Include\Manifest\dpiaware.manifest" /DEBUG /PDB:"C:\장한결\Small_Studio\x64\Release\Small_Studio.pdb" /SUBSYSTEM:WINDOWS /OPT:REF /OPT:ICF /LTCG /TLBID:1 /ENTRY:"wWinMainCRTStartup" /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\장한결\Small_Studio\x64\Release\Small_Studio.lib" /MACHINE:X64 x64\Release\Small_Studio.res
-         x64\Release\CrevisCtrl.obj
-         x64\Release\LightCtrl.obj
-         x64\Release\OptionDlg.obj
-         x64\Release\Small_Studio.obj
-         x64\Release\Small_StudioDlg.obj
-         x64\Release\stdafx.obj
-         Generating code
-         Finished generating code
-         Small_Studio.vcxproj -> C:\장한결\Small_Studio\x64\Release\Small_Studio.exe
-     1>Done Building Project "C:\장한결\Small_Studio\Small_Studio\Small_Studio.vcxproj" (Build target(s)).
-
-Build succeeded.
-
-Time Elapsed 00:00:01.27
+﻿  Small_StudioDlg.cpp
+  코드를 생성하고 있습니다.
+  코드를 생성했습니다.
+  Small_Studio.vcxproj -> E:\필요문서\5. 과제\6. big assignment\Small_Studio\x64\Release\Small_Studio.exe
