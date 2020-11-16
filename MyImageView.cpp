@@ -19,6 +19,8 @@ CMyImageView::CMyImageView()
 	m_rawWidth = -1;
 	m_Islarger = FALSE;
 	m_pBitmapInfo = NULL;
+	m_largerTopLeft = cv::Point(0, 0);
+	m_IsMove = FALSE;
 }
 
 CMyImageView::~CMyImageView()
@@ -35,6 +37,93 @@ CMyImageView::~CMyImageView()
 		m_pBitmapInfo = NULL;
 	}
 }
+
+
+// BYTE Grayscale 값 -> Mat 20201113 장한결
+void CMyImageView::pByteToMat(BYTE* imgbits, int width, int height)
+{
+	m_OriMat = cv::Mat();
+	if (imgbits != NULL)
+	{
+		m_OriMat = cv::Mat(height, width, CV_8UC1, imgbits).clone();
+		m_rawWidth = width;
+		m_rawHeight = height;
+	}
+}
+
+void CMyImageView::largerScreen(cv::Point pt)
+{
+	if (m_OriMat.empty())
+	{
+		return;
+	}
+	else
+	{
+		
+	}
+}
+
+// Mat 에 마우스 포인터가 가르키는 위치의 RGB값 출력
+void CMyImageView::cvCursorRGB(CPoint point, cv::Point textPoint , CPoint rectTopLeft, CPoint rectBottomRight)
+{
+	CString textToDraw = _T("");
+	// 그려질 이미지 끝부분 X,Y 좌표
+	int fontSize = 0;
+	cv::Point showpt;
+	if (m_OriMat.empty())
+	{
+		return;
+	}
+	else
+	{
+		if (m_Islarger == FALSE)
+		{
+			m_DrawMat = m_OriMat.clone();
+			m_showWidth = m_rawWidth;
+			m_showHeight = m_rawHeight;
+			fontSize = 2;
+		}
+		else
+		{
+			m_DrawMat = m_OriMat.clone();
+			fontSize = 1;
+		}
+	}
+	cv::Point insidePoint;
+	cv::Point RealPoint;
+	cv::Point imgPoint;
+
+	
+	imgPoint.x = m_DrawMat.cols;
+	imgPoint.y = m_DrawMat.rows;
+
+
+	if (point.x >= rectTopLeft.x && point.y >= rectTopLeft.y)
+	{
+		if (point.x <= rectBottomRight.x && point.y <= rectBottomRight.y)
+		{
+
+			// 마우스 좌표 - 디스플레이 좌측상단 좌표 = 이미지 내부 좌표
+			insidePoint.x = point.x - rectTopLeft.x;
+			insidePoint.y = point.y - rectTopLeft.y;
+
+			// 디스플레이 좌표 != 이미지 좌표이므로 환산식이 필요함
+			// 그려질 이미지 길이 : 디스플레이 길이 = 이미지에서 좌표 (구할 값) : 측정된 좌표
+			// 이미지에서 좌표 = 측정된 좌표 * 그려질 이미지 길이 / 디스플레이 길이
+			RealPoint.x = int(imgPoint.x * insidePoint.x / (rectBottomRight.x - rectTopLeft.x));
+			RealPoint.y = int(imgPoint.y * insidePoint.y / (rectBottomRight.y - rectTopLeft.y));
+
+			int rgbv = m_OriMat.at<uchar>(RealPoint);
+
+			CString stringToDraw;
+			stringToDraw.Format(_T("%d %d / : %d"), RealPoint.x, RealPoint.y,rgbv);
+			cv::String str = CT2A(stringToDraw);
+			cv::putText(m_DrawMat, str, textPoint, cv::FONT_HERSHEY_SIMPLEX, fontSize, cv::Scalar(155, 0, 0), fontSize);
+		}
+	}
+
+}
+
 
 // 생성될 때 지정된 디스플레이에 Mat 출력 20201113 장한결
 void CMyImageView::createBitmapInfo(cv::Mat mat)
@@ -77,79 +166,6 @@ void CMyImageView::createBitmapInfo(cv::Mat mat)
 	m_pBitmapInfo->bmiHeader.biHeight = -h;
 }
 
-
-// BYTE Grayscale 값 -> Mat 20201113 장한결
-void CMyImageView::pByteToMat(BYTE* imgbits, int width, int height)
-{
-	m_OriMat = cv::Mat();
-	if (imgbits != NULL)
-	{
-		m_OriMat = cv::Mat(height, width, CV_8UC1, imgbits).clone();
-		m_rawWidth = width;
-		m_rawHeight = height;
-	}
-}
-
-void CMyImageView::largerScreen()
-{
-	if (m_OriMat.empty())
-	{
-		return;
-	}
-	else
-	{
-		m_DrawMat = m_OriMat.clone();
-	}
-
-
-}
-
-// Mat 에 마우스 포인터가 가르키는 위치의 RGB값 출력
-void CMyImageView::cvCursorRGB(CPoint point, CPoint rectTopLeft, CPoint rectBottomRight)
-{
-	CString textToDraw = _T("");
-	// 그려질 이미지 끝부분 X,Y 좌표
-	if (m_OriMat.empty())
-	{
-		return;
-	}
-	else
-	{
-		m_DrawMat = m_OriMat.clone();
-	}
-	cv::Point insidePoint;
-	cv::Point RealPoint;
-	cv::Point imgPoint;
-
-	imgPoint.x = m_DrawMat.cols;
-	imgPoint.y = m_DrawMat.rows;
-
-
-	if (point.x >= rectTopLeft.x && point.y >= rectTopLeft.y)
-	{
-		if (point.x <= rectBottomRight.x && point.y <= rectBottomRight.y)
-		{
-
-			// 마우스 좌표 - 디스플레이 좌측상단 좌표 = 이미지 내부 좌표
-			insidePoint.x = point.x - rectTopLeft.x;
-			insidePoint.y = point.y - rectTopLeft.y;
-
-			// 디스플레이 좌표 != 이미지 좌표이므로 환산식이 필요함
-			// 그려질 이미지 길이 : 디스플레이 길이 = 이미지에서 좌표 (구할 값) : 측정된 좌표
-			// 이미지에서 좌표 = 측정된 좌표 * 그려질 이미지 길이 / 디스플레이 길이
-			RealPoint.x = abs(imgPoint.x * insidePoint.x / (rectBottomRight.x - rectTopLeft.x));
-			RealPoint.y = abs(imgPoint.y * insidePoint.y / (rectBottomRight.y - rectTopLeft.y));
-
-			int rgbv = (int)m_OriMat.at<char>(RealPoint);
-
-			CString stringToDraw;
-			stringToDraw.Format(_T("%d %d / : %d"), RealPoint.x, RealPoint.y, abs(rgbv));
-			cv::String str = CT2A(stringToDraw);
-			cv::putText(m_DrawMat, str, cv::Point(100, 100), cv::FONT_HERSHEY_SIMPLEX, 2, cv::Scalar(155, 0, 0), 2);
-		}
-	}
-
-}
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Gdiplus 관련. . . 사용 금지 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Gdiplus::Bitmap 복사 20201112 장한결
@@ -164,7 +180,7 @@ void CMyImageView::cloneBitmap(Bitmap* oriBitmap)
 
 // Image quality 문제로 미사용.
 // MemDC를 활용, text를 이미지 위에 띄워줌 20201112 장한결
-void CMyImageView::cursorRGB(CPoint point, CPoint rectTopLeft, CPoint rectBottomRight)
+void CMyImageView::cursorRGB(CPoint point ,CPoint rectTopLeft, CPoint rectBottomRight)
 {
 	if (m_pBitmap != NULL)
 	{

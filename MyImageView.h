@@ -21,16 +21,18 @@ private:
 
 public:
 	BOOL			m_Islarger;
+	BOOL			m_IsMove;
 	cv::Mat			m_OriMat; // OpenCV Mat
 	cv::Mat			m_DrawMat;
 	BITMAPINFO*		m_pBitmapInfo;
+	cv::Point		m_largerTopLeft;
 	int				m_showWidth; // 최종적으로 Out되는 이미지의 Size
 	int				m_showHeight;
 
 public:
-	void			largerScreen();
+	void			largerScreen(cv::Point pt);
 	void			pByteToMat(BYTE* imgbits, int width, int height); // m_pMat 생성 후 변환
-	void			cvCursorRGB(CPoint point, CPoint rectTopLeft, CPoint rectBottomRight);
+	void			cvCursorRGB(CPoint point, cv::Point textPoint, CPoint rectTopLeft, CPoint rectBottomRight);
 	void			createBitmapInfo(cv::Mat mat);
 	
 // GDIPlus 관련 : 사용 금지 20201113 장한결
