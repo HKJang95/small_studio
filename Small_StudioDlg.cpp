@@ -128,8 +128,8 @@ BEGIN_MESSAGE_MAP(CSmall_StudioDlg, CDialogEx)
 	ON_MESSAGE(WM_MYRECEIVE, OnMyMsg)
 	ON_BN_CLICKED(IDC_DEBUGDRAGON, &CSmall_StudioDlg::OnBnClickedDebugdragon)
 	ON_WM_MOUSEMOVE()
-	ON_STN_DBLCLK(IDC_PIC1, &CSmall_StudioDlg::OnStnDblclickPic1)
-	ON_STN_DBLCLK(IDC_PIC2, &CSmall_StudioDlg::OnStnDblclickPic2)
+	ON_WM_LBUTTONDBLCLK()
+	ON_WM_RBUTTONDOWN()
 END_MESSAGE_MAP()
 
 
@@ -148,9 +148,10 @@ BOOL CSmall_StudioDlg::OnInitDialog()
 		
 		if (i == 0)
 		{
-			m_pDC[i] = new CClientDC(GetDlgItem(IDC_PIC1));
+			m_pDC[i] = new CClientDC(GetDlgItem(IDC_PIC1)); 
 			m_hDC[i] = m_pDC[i]->GetSafeHdc();
 			GetDlgItem(IDC_PIC1)->GetWindowRect(m_rcDisp[i]);
+			ScreenToClient(&m_rcDisp[i]);
 			m_pGraphics[i] = Graphics::FromHDC(m_hDC[i]);
 			m_pImageView[i] = new CMyImageView();
 		}
@@ -159,6 +160,7 @@ BOOL CSmall_StudioDlg::OnInitDialog()
 			m_pDC[i] = new CClientDC(GetDlgItem(IDC_PIC2));
 			m_hDC[i] = m_pDC[i]->GetSafeHdc();
 			GetDlgItem(IDC_PIC2)->GetWindowRect(m_rcDisp[i]);
+			ScreenToClient(&m_rcDisp[i]);
 			m_pGraphics[i] = Graphics::FromHDC(m_hDC[i]);
 			m_pImageView[i] = new CMyImageView();
 		}
@@ -662,6 +664,10 @@ BOOL CSmall_StudioDlg::DrawSingleImage(int dispNum)
 
 BOOL CSmall_StudioDlg::DrawProcessed(int dispNum)
 {
+	if (m_pImageView[dispNum]->m_Islarger)
+	{
+		
+	}
 	m_pImageView[dispNum]->cvCursorRGB(m_CurSor, m_rcDisp[dispNum].TopLeft(), m_rcDisp[dispNum].BottomRight());
 	m_pImageView[dispNum]->createBitmapInfo(m_pImageView[dispNum]->m_DrawMat);
 	SetStretchBltMode(m_pDC[dispNum]->GetSafeHdc(), COLORONCOLOR);
@@ -1114,41 +1120,54 @@ LRESULT	CSmall_StudioDlg::OnMyMsg(WPARAM length, LPARAM lpara)
 		GetDlgItem(IDC_LTESTRCV)->SetWindowTextW(str);
 		str = "";
 	}
-
 	return 0;
+}
+void CSmall_StudioDlg::OnMouseMove(UINT nFlags, CPoint point)
+{
+	CString debug;
+	for (int i = 0; i < MAXCAM; i++)
+	{
+		if (m_rcDisp[i].PtInRect(point))
+		{
+			if (m_CamTrig[i] == CAMERA_TRIG_SW)
+			{
+				m_CurSor.x = point.x;
+				m_CurSor.y = point.y;
+				InvalidateRect(m_rcDisp[i], NULL);
+			}
+		}
+	}
+	CDialogEx::OnMouseMove(nFlags, point);
 }
 
 
-
-void CSmall_StudioDlg::OnMouseMove(UINT nFlags, CPoint point)
+void CSmall_StudioDlg::OnLButtonDblClk(UINT nFlags, CPoint point)
 {
-	
+	// TODO: 여기에 메시지 처리기 코드를 추가 및/또는 기본값을 호출합니다.
 	for (int i = 0; i < MAXCAM; i++)
 	{
-		if (point.x > m_rcDisp[i].TopLeft().x && point.y > m_rcDisp[i].TopLeft().y)
+		if (m_rcDisp[i].PtInRect(point))
 		{
-			if (point.x < m_rcDisp[i].BottomRight().x && point.y < m_rcDisp[i].BottomRight().y)
+			if (m_CamTrig[i] == CAMERA_TRIG_SW)
 			{
-				if (m_CamTrig[i] == CAMERA_TRIG_SW)
+				if (m_pImageView[i]->m_Islarger)
 				{
-					m_CurSor.x = point.x;
-					m_CurSor.y = point.y;
-					InvalidateRect(m_rcDisp[i], NULL);
+					m_pImageView[i]->m_Islarger = FALSE;
+				}
+				else
+				{
+					m_pImageView[i]->m_Islarger = TRUE;
 				}
 			}
 		}
 	}
-
-	CDialogEx::OnMouseMove(nFlags, point);
-}
-
-void CSmall_StudioDlg::OnStnDblclickPic1()
-{
-	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+	CDialogEx::OnLButtonDblClk(nFlags, point);
 }
 
 
-void CSmall_StudioDlg::OnStnDblclickPic2()
+void CSmall_StudioDlg::OnRButtonDown(UINT nFlags, CPoint point)
 {
-	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+	// TODO: 여기에 메시지 처리기 코드를 추가 및/또는 기본값을 호출합니다.
+
+	CDialogEx::OnRButtonDown(nFlags, point);
 }

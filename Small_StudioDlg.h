@@ -110,8 +110,6 @@ public:
 	
 	afx_msg void OnBnClickedDebugdragon();
 	afx_msg void OnMouseMove(UINT nFlags, CPoint point);
-	afx_msg void OnStnClickedPic1();
-	afx_msg void OnStnClickedPic2();
-	afx_msg void OnStnDblclickPic1();
-	afx_msg void OnStnDblclickPic2();
+	afx_msg void OnLButtonDblClk(UINT nFlags, CPoint point);
+	afx_msg void OnRButtonDown(UINT nFlags, CPoint point);
 };

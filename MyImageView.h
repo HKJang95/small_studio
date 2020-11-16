@@ -14,14 +14,13 @@ public:
 	virtual ~CMyImageView();
 
 private:
-
-	BOOL			m_larger;
 	CRect			m_DispRect;
 	INT				m_DispID;
 	int				m_rawWidth;
 	int				m_rawHeight;
 
 public:
+	BOOL			m_Islarger;
 	cv::Mat			m_OriMat; // OpenCV Mat
 	cv::Mat			m_DrawMat;
 	BITMAPINFO*		m_pBitmapInfo;
@@ -29,6 +28,7 @@ public:
 	int				m_showHeight;
 
 public:
+	void			largerScreen();
 	void			pByteToMat(BYTE* imgbits, int width, int height); // m_pMat 생성 후 변환
 	void			cvCursorRGB(CPoint point, CPoint rectTopLeft, CPoint rectBottomRight);
 	void			createBitmapInfo(cv::Mat mat);
