@@ -19,7 +19,8 @@ CMyImageView::CMyImageView()
 	m_rawWidth = -1;
 	m_Islarger = FALSE;
 	m_pBitmapInfo = NULL;
-	m_largerTopLeft = cv::Point(0, 0);
+	m_largerTopLeft = cv::Point(-1, -1);
+	m_RealLargeTopLeft = cv::Point(-1, -1);
 	m_IsMove = FALSE;
 }
 
@@ -59,7 +60,17 @@ void CMyImageView::largerScreen(cv::Point pt)
 	}
 	else
 	{
-		
+		if (pt.x < 0)
+		{
+			m_RealLargeTopLeft.x = 0;
+			m_RealLargeTopLeft.y = 0;
+			m_largerTopLeft.x = 0;
+			m_largerTopLeft.y = m_DrawMat.rows / 2;
+		}
+		else
+		{
+			
+		}
 	}
 }
 

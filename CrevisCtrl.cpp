@@ -275,9 +275,17 @@ BOOL CCrevisCtrl::GrabImageContinuous()
 	CString debug;
 	if (m_IsDeviceOpen)
 	{
+		m_status = ST_SetCmdReg(m_hDevice, MCAM_TRIGGER_SOFTWARE);
+		if (m_status != MCAM_ERR_SUCCESS)
+		{
+			debug.Format(_T("errcode 1 : %d\n"), m_status);
+			OutputDebugString(debug);
+			return FALSE;
+		}
+
 		Sleep(5);
 
-		m_status = ST_GrabImage(m_hDevice, m_pImage, m_bufferSize);
+		m_status = ST_GrabImageAsync(m_hDevice, m_pImage, m_bufferSize, -1);
 		if (m_status != MCAM_ERR_SUCCESS)
 		{
 			debug.Format(_T("errcode 2 : %d\n"), m_status);

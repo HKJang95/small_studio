@@ -26,6 +26,7 @@ public:
 	cv::Mat			m_DrawMat;
 	BITMAPINFO*		m_pBitmapInfo;
 	cv::Point		m_largerTopLeft;
+	cv::Point		m_RealLargeTopLeft;
 	int				m_showWidth; // 최종적으로 Out되는 이미지의 Size
 	int				m_showHeight;
 

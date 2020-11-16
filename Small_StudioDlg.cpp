@@ -653,6 +653,7 @@ BOOL CSmall_StudioDlg::GrabImageSWTrigger(int dispNum)
 BOOL CSmall_StudioDlg::DrawSingleImage(int dispNum)
 {
 	::EnterCriticalSection(&mSc);
+	m_pImageView[dispNum]->m_Islarger = FALSE;
 	m_pImageView[dispNum]->pByteToMat(m_pCamCtrl[dispNum]->m_pImage, m_pCamCtrl[dispNum]->m_camWidth, m_pCamCtrl[dispNum]->m_camHeight);
 	m_pImageView[dispNum]->createBitmapInfo(m_pImageView[dispNum]->m_OriMat);
 	SetStretchBltMode(m_pDC[dispNum]->GetSafeHdc(), COLORONCOLOR);
@@ -669,7 +670,9 @@ BOOL CSmall_StudioDlg::DrawProcessed(int dispNum)
 	// 확대시 (x 2 . 0)
 	if (m_pImageView[dispNum]->m_Islarger)
 	{
-		m_pImageView[dispNum]->cvCursorRGB(m_CurSor, cv::Point(100, 100), m_rcDisp[dispNum].TopLeft(), m_rcDisp[dispNum].BottomRight());
+		m_pImageView[dispNum]->largerScreen(m_pImageView[dispNum]->m_RealLargeTopLeft);
+		cv::Point cursorPt(m_pImageView[dispNum]->m_RealLargeTopLeft.x + 50, m_pImageView[dispNum]->m_RealLargeTopLeft.y + 50);
+		m_pImageView[dispNum]->cvCursorRGB(m_CurSor, cursorPt, m_rcDisp[dispNum].TopLeft(), m_rcDisp[dispNum].BottomRight());
 		m_pImageView[dispNum]->createBitmapInfo(m_pImageView[dispNum]->m_DrawMat);
 		SetStretchBltMode(m_pDC[dispNum]->GetSafeHdc(), COLORONCOLOR);
 		StretchDIBits
@@ -677,7 +680,7 @@ BOOL CSmall_StudioDlg::DrawProcessed(int dispNum)
 			m_pDC[dispNum]->GetSafeHdc(), // Hdc
 			0, 0, // 디스플레이 내부 그리기 시작할 좌표
 			m_rcDisp[dispNum].Width(), m_rcDisp[dispNum].Height(), // 디스플레이 폭, 높이
-			0, 0, // 영상 시작점 좌표
+			m_pImageView[dispNum]->m_largerTopLeft.x, m_pImageView[dispNum]->m_largerTopLeft.y, // 영상 시작점 좌표
 			m_pImageView[dispNum]->m_DrawMat.cols / 2, m_pImageView[dispNum]->m_DrawMat.rows / 2, // 영상 폭, 높이
 			m_pImageView[dispNum]->m_DrawMat.data, // 이미지 포인터
 			m_pImageView[dispNum]->m_pBitmapInfo, // Bitmap 그릴 때 필요한 info (항상 고정임) 
