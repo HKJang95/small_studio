@@ -595,7 +595,7 @@ BOOL CSmall_StudioDlg::DrawImageContinuous(int dispNum)
 {
 	// continuous mode 20201112 ÀåÇÑ°á
 	::EnterCriticalSection(&mSc);
-	if (!m_pCamCtrl[dispNum]->GrabImageSW())
+	if (!m_pCamCtrl[dispNum]->GrabImageContinuous())
 	{
 		::LeaveCriticalSection(&mSc);
 		return FALSE;

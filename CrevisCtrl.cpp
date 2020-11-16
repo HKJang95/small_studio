@@ -269,3 +269,25 @@ BOOL CCrevisCtrl::GrabImageSW()
 		return FALSE;
 	}
 }
+
+BOOL CCrevisCtrl::GrabImageContinuous()
+{
+	CString debug;
+	if (m_IsDeviceOpen)
+	{
+		Sleep(5);
+
+		m_status = ST_GrabImage(m_hDevice, m_pImage, m_bufferSize);
+		if (m_status != MCAM_ERR_SUCCESS)
+		{
+			debug.Format(_T("errcode 2 : %d\n"), m_status);
+			OutputDebugString(debug);
+			return FALSE;
+		}
+		return TRUE;
+	}
+	else
+	{
+		return FALSE;
+	}
+}
