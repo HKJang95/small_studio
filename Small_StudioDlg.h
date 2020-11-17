@@ -53,7 +53,6 @@ private:
 	//	BOOL			hbitmap2CImage(int dispNum);
 	BOOL			LightCtrl(int dispNum);
 	BOOL			LightSend(int dispNum, BOOL OnOff);
-	BOOL			RawToGDIPBmp(int dispNum, int width, int height, BYTE* buffer);
 	LRESULT			OnMyMsg(WPARAM length, LPARAM lpara);
 	BOOL			m_IsOverlay[MAXCAM];
 	CPoint			m_CurSor;
@@ -81,11 +80,9 @@ public:
 	HANDLE			m_hPlayTerminate[MAXCAM];
 
 	HANDLE			m_hOpenThread[MAXCAM];
-	// GDI+
+
 	CRect			m_rcDisp[MAXCAM];
 	HDC				m_hDC[MAXCAM];
-	Graphics*		m_pGraphics[MAXCAM];
-	Bitmap*			m_pBitmap[MAXCAM];
 
 	////////////////////////////////////////////////////////////////////////////////////////////////
 	BOOL			m_optionmodal;
