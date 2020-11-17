@@ -23,6 +23,8 @@ CMyImageView::CMyImageView()
 	m_RealLargeTopLeft = cv::Point(-1, -1);
 	m_IsMove = FALSE;
 	m_prevMouse = CPoint(0, 0);
+	m_IsCursorBin = FALSE;
+	m_IsCursorLarger = FALSE;
 }
 
 CMyImageView::~CMyImageView()
@@ -40,6 +42,14 @@ CMyImageView::~CMyImageView()
 	}
 }
 
+// 이미지 re capture시 BOOL 값들 Reset
+void CMyImageView::ImageViewerReset()
+{
+	m_Islarger = FALSE;
+	m_IsMove = FALSE;
+	m_IsCursorLarger = FALSE;
+	m_IsCursorBin = FALSE;
+}
 
 // BYTE (이미지) -> Mat 20201113 장한결
 void CMyImageView::pByteToMat(BYTE* imgbits, int width, int height)
@@ -65,7 +75,6 @@ void CMyImageView::largerTopLeftMover(CPoint mpoint)
 		if (mpoint.y > m_prevMouse.y)
 		{
 			m_RealLargeTopLeft.y += (mpoint.y - m_prevMouse.y);
-			
 		}
 		if (mpoint.x < m_prevMouse.x)
 		{
@@ -79,12 +88,10 @@ void CMyImageView::largerTopLeftMover(CPoint mpoint)
 		{
 			m_RealLargeTopLeft.x = 0;
 		}
-
 		if (m_RealLargeTopLeft.y < 0)
 		{
 			m_RealLargeTopLeft.y = 0;
 		}
-
 		if (m_RealLargeTopLeft.x > m_DrawMat.cols / 2)
 		{
 			m_RealLargeTopLeft.x = m_DrawMat.cols / 2;

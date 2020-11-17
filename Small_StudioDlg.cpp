@@ -101,6 +101,7 @@ CSmall_StudioDlg::CSmall_StudioDlg(CWnd* pParent /*=NULL*/)
 		m_hOpenThread[i] = NULL;
 		m_pImageView[i] = NULL;
 		m_IsOverlay[i] = TRUE;
+		m_IsContext[i] = FALSE;
 	}
 
 	for (int i = 0; i < LIGHTCH; i++)
@@ -132,6 +133,9 @@ BEGIN_MESSAGE_MAP(CSmall_StudioDlg, CDialogEx)
 	ON_WM_RBUTTONDOWN()
 	ON_WM_LBUTTONDOWN()
 	ON_WM_LBUTTONUP()
+	ON_WM_CONTEXTMENU()
+	ON_COMMAND(IDB_CONTEXTLARG, &CSmall_StudioDlg::OnCtxtClickedLarg)
+	ON_COMMAND(IDB_CONTEXTBIN, &CSmall_StudioDlg::OnCtxtClickedBin)
 END_MESSAGE_MAP()
 
 
@@ -653,7 +657,7 @@ BOOL CSmall_StudioDlg::GrabImageSWTrigger(int dispNum)
 BOOL CSmall_StudioDlg::DrawSingleImage(int dispNum)
 {
 	::EnterCriticalSection(&mSc);
-	m_pImageView[dispNum]->m_Islarger = FALSE;
+	m_pImageView[dispNum]->ImageViewerReset();
 	m_pImageView[dispNum]->pByteToMat(m_pCamCtrl[dispNum]->m_pImage, m_pCamCtrl[dispNum]->m_camWidth, m_pCamCtrl[dispNum]->m_camHeight);
 	m_pImageView[dispNum]->createBitmapInfo(m_pImageView[dispNum]->m_OriMat);
 	SetStretchBltMode(m_pDC[dispNum]->GetSafeHdc(), COLORONCOLOR);
@@ -1214,6 +1218,7 @@ void CSmall_StudioDlg::OnLButtonDblClk(UINT nFlags, CPoint point)
 void CSmall_StudioDlg::OnRButtonDown(UINT nFlags, CPoint point)
 {
 	// TODO: 여기에 메시지 처리기 코드를 추가 및/또는 기본값을 호출합니다.
+	
 	CDialogEx::OnRButtonDown(nFlags, point);
 }
 
@@ -1246,4 +1251,93 @@ void CSmall_StudioDlg::OnLButtonUp(UINT nFlags, CPoint point)
 		m_pImageView[i]->m_IsMove = FALSE;
 	}
 	CDialogEx::OnLButtonUp(nFlags, point);
+}
+
+
+void CSmall_StudioDlg::OnContextMenu(CWnd* pWnd, CPoint point)
+{
+	CPoint cvtPoint = point;
+	ScreenToClient(&cvtPoint);
+	// TODO: 여기에 메시지 처리기 코드를 추가합니다.
+	for (int i = 0; i < MAXCAM; i++)
+	{
+		if (m_pImageView[i]->m_DrawMat.empty())
+		{
+			return;
+		}
+
+		if (m_rcDisp[i].PtInRect(cvtPoint))
+		{
+			m_IsContext[i] = TRUE;
+			CMenu menu;
+			menu.CreatePopupMenu();
+			CString options[2];
+
+			if (m_pImageView[i]->m_IsCursorLarger)
+			{
+				options[0] = _T("* 커서부분 확대");
+			}
+			else
+			{
+				options[0] = _T("커서부분 확대");
+			}
+
+			if (m_pImageView[i]->m_IsCursorBin)
+			{
+				options[1] = _T("* 이진화");
+			}
+			else
+			{
+				options[1] = _T("이진화");
+			}
+
+			// 메뉴를 추가합니다.
+			menu.AppendMenu(MF_STRING, IDB_CONTEXTLARG, options[0]);
+			menu.AppendMenu(MF_STRING, IDB_CONTEXTBIN, options[1]);
+
+			// 컨텍스트 메뉴를 x,y 좌표에 출력합니다. 
+			menu.TrackPopupMenu(TPM_LEFTALIGN,
+				point.x,
+				point.y,
+				AfxGetMainWnd());
+		}
+	}
+}
+
+void CSmall_StudioDlg::OnCtxtClickedLarg()
+{
+	for (int i = 0; i < MAXCAM; i++)
+	{
+		if (m_IsContext[i])
+		{
+			if (m_pImageView[i]->m_IsCursorLarger)
+			{
+				m_pImageView[i]->m_IsCursorLarger = FALSE;
+			}
+			else
+			{
+				m_pImageView[i]->m_IsCursorLarger = TRUE;
+			}
+		}
+		m_IsContext[i] = FALSE;
+	}
+	
+}
+void CSmall_StudioDlg::OnCtxtClickedBin()
+{
+	for (int i = 0; i < MAXCAM; i++)
+	{
+		if (m_IsContext[i])
+		{
+			if (m_pImageView[i]->m_IsCursorBin)
+			{
+				m_pImageView[i]->m_IsCursorBin = FALSE;
+			}
+			else
+			{
+				m_pImageView[i]->m_IsCursorBin = TRUE;
+			}
+		}
+		m_IsContext[i] = FALSE;
+	}
 }

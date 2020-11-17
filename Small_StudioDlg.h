@@ -61,7 +61,7 @@ private:
 public:
 	bool			m_IsSystemInit;		// Camera SDK Init 상태 점검입니다.
 	BOOL			m_IsOpen[MAXCAM];	// 카메라 Open 여부
-
+	BOOL			m_IsContext[MAXCAM];
 	BOOL			m_IsPlay[MAXCAM];	// Play 여부 (Grab & Show)
 	BOOL			m_IsSerialOpen;		// Seiral Port Open여부
 	CCrevisCtrl*	m_pCamCtrl[MAXCAM]; // 카메라용 Class 객체 포인터입니다. 
@@ -107,6 +107,8 @@ public:
 	void			thread2proc(); // Screen2ThreadProc에서 실행되는 스레드 프로세스 (2번 Screen grab -> draw)
 	void			Cam1OpenProc();
 	void			Cam2OpenProc();
+	void			OnCtxtClickedLarg();
+	void			OnCtxtClickedBin();
 	
 	afx_msg void OnBnClickedDebugdragon();
 	afx_msg void OnMouseMove(UINT nFlags, CPoint point);
@@ -114,4 +116,5 @@ public:
 	afx_msg void OnRButtonDown(UINT nFlags, CPoint point);
 	afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
 	afx_msg void OnLButtonUp(UINT nFlags, CPoint point);
+	afx_msg void OnContextMenu(CWnd* /*pWnd*/, CPoint /*point*/);
 };

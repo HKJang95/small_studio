@@ -22,6 +22,8 @@ private:
 public:
 	BOOL			m_Islarger;
 	BOOL			m_IsMove;
+	BOOL			m_IsCursorLarger;
+	BOOL			m_IsCursorBin;
 	cv::Mat			m_OriMat; // OpenCV Mat
 	cv::Mat			m_DrawMat;
 	BITMAPINFO*		m_pBitmapInfo;
@@ -37,6 +39,7 @@ public:
 	void			pByteToMat(BYTE* imgbits, int width, int height); // m_pMat 생성 후 변환
 	void			cvCursorRGB(CPoint point, cv::Point textPoint, CPoint rectTopLeft, CPoint rectBottomRight);
 	void			createBitmapInfo(cv::Mat mat);
+	void			ImageViewerReset();
 	
 // GDIPlus 관련 : 사용 금지 20201113 장한결
 private:
