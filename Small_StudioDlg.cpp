@@ -258,18 +258,18 @@ void CSmall_StudioDlg::OnPaint()
 			}
 			else if (m_IsPlay[i] && m_CamTrig[i] == CAMERA_TRIG_SW)
 			{
-				if (m_pBitmap[i] != NULL)
+				if (m_pCamCtrl[i] != NULL)
 				{
 					DrawSingleImage(i);
 				}
 			}
 			else
 			{
-				if (m_pBitmap[i] != NULL && m_IsOverlay)
+				if (m_pCamCtrl[i] != NULL && m_IsOverlay)
 				{
 					DrawProcessed(i);
 				}
-				else if (m_pBitmap[i] != NULL && !m_IsOverlay)
+				else if (m_pCamCtrl[i] != NULL && !m_IsOverlay)
 				{
 					DrawSingleImage(i);
 				}
@@ -608,8 +608,13 @@ BOOL CSmall_StudioDlg::DrawImageContinuous(int dispNum)
 		::LeaveCriticalSection(&mSc);
 		return FALSE;
 	}
-	RawToGDIPBmp(dispNum, m_pCamCtrl[dispNum]->m_camWidth, m_pCamCtrl[dispNum]->m_camHeight, m_pCamCtrl[dispNum]->m_pImage);
-	m_pGraphics[dispNum]->DrawImage(m_pBitmap[dispNum], 0, 0, m_pCamCtrl[dispNum]->m_camWidth, m_pCamCtrl[dispNum]->m_camHeight);
+	m_pImageView[dispNum]->ImageViewerReset();
+	m_pImageView[dispNum]->pByteToMat(m_pCamCtrl[dispNum]->m_pImage, m_pCamCtrl[dispNum]->m_camWidth, m_pCamCtrl[dispNum]->m_camHeight);
+	m_pImageView[dispNum]->createBitmapInfo(m_pImageView[dispNum]->m_OriMat);
+	SetStretchBltMode(m_pDC[dispNum]->GetSafeHdc(), COLORONCOLOR);
+	StretchDIBits(m_pDC[dispNum]->GetSafeHdc(), 0, 0, m_rcDisp[dispNum].Width(), m_rcDisp[dispNum].Height(), 0, 0,
+		m_pImageView[dispNum]->m_OriMat.cols, m_pImageView[dispNum]->m_OriMat.rows, m_pImageView[dispNum]->m_OriMat.data,
+		m_pImageView[dispNum]->m_pBitmapInfo, DIB_RGB_COLORS, SRCCOPY);
 	// DIBMake(dispNum);
 	// hbitmap2CImage(dispNum);
 	::LeaveCriticalSection(&mSc);
@@ -649,7 +654,7 @@ BOOL CSmall_StudioDlg::GrabImageSWTrigger(int dispNum)
 	LightSend(dispNum, FALSE);
 	// DIBMake(dispNum);
 	// hbitmap2CImage(dispNum);
-	RawToGDIPBmp(dispNum, m_pCamCtrl[dispNum]->m_camWidth, m_pCamCtrl[dispNum]->m_camHeight, m_pCamCtrl[dispNum]->m_pImage);
+	
 	::LeaveCriticalSection(&mSc);
 	return TRUE;
 }
