@@ -22,6 +22,7 @@ CMyImageView::CMyImageView()
 	m_largerTopLeft = cv::Point(-1, -1);
 	m_RealLargeTopLeft = cv::Point(-1, -1);
 	m_IsMove = FALSE;
+	m_prevMouse = CPoint(0, 0);
 }
 
 CMyImageView::~CMyImageView()
@@ -40,7 +41,7 @@ CMyImageView::~CMyImageView()
 }
 
 
-// BYTE Grayscale 값 -> Mat 20201113 장한결
+// BYTE (이미지) -> Mat 20201113 장한결
 void CMyImageView::pByteToMat(BYTE* imgbits, int width, int height)
 {
 	m_OriMat = cv::Mat();
@@ -50,6 +51,52 @@ void CMyImageView::pByteToMat(BYTE* imgbits, int width, int height)
 		m_rawWidth = width;
 		m_rawHeight = height;
 	}
+}
+
+void CMyImageView::largerTopLeftMover(CPoint mpoint)
+{
+	if (m_Islarger && m_IsMove)
+	{
+		if (mpoint.x > m_prevMouse.x)
+		{
+			m_RealLargeTopLeft.x += (mpoint.x - m_prevMouse.x);
+			
+		}
+		if (mpoint.y > m_prevMouse.y)
+		{
+			m_RealLargeTopLeft.y += (mpoint.y - m_prevMouse.y);
+			
+		}
+		if (mpoint.x < m_prevMouse.x)
+		{
+			m_RealLargeTopLeft.x -= (m_prevMouse.x - mpoint.x);
+		}
+		if (mpoint.y < m_prevMouse.y)
+		{
+			m_RealLargeTopLeft.y -= (m_prevMouse.x - mpoint.x);
+		}
+		if (m_RealLargeTopLeft.x < 0)
+		{
+			m_RealLargeTopLeft.x = 0;
+		}
+
+		if (m_RealLargeTopLeft.y < 0)
+		{
+			m_RealLargeTopLeft.y = 0;
+		}
+
+		if (m_RealLargeTopLeft.x > m_DrawMat.cols / 2)
+		{
+			m_RealLargeTopLeft.x = m_DrawMat.cols / 2;
+		}
+
+		if (m_RealLargeTopLeft.y > m_DrawMat.rows / 2)
+		{
+			m_RealLargeTopLeft.y = m_DrawMat.rows / 2;
+		}
+
+	}
+	m_prevMouse = mpoint;
 }
 
 void CMyImageView::largerScreen(cv::Point pt)
@@ -69,7 +116,24 @@ void CMyImageView::largerScreen(cv::Point pt)
 		}
 		else
 		{
-			
+			// 실제 확대 영역의 Rect 왼쪽 상단 좌표
+			m_RealLargeTopLeft.x = pt.x;
+			m_RealLargeTopLeft.y = pt.y;
+
+			// 영상 정 가운데점이 왼쪽 상단 좌표로 가질 수 있는 최댓값 (Lock)
+			if (m_RealLargeTopLeft.x > m_DrawMat.cols / 2)
+			{
+				m_RealLargeTopLeft.x = m_DrawMat.cols / 2;
+			}
+
+			if (m_RealLargeTopLeft.y > m_DrawMat.rows / 2)
+			{
+				m_RealLargeTopLeft.y = m_DrawMat.rows / 2;
+			}
+
+			// 실제 StretchDIBits에서 사용될 좌표값 (환산이 필요함)
+			m_largerTopLeft.x = m_RealLargeTopLeft.x;
+			m_largerTopLeft.y = m_DrawMat.rows / 2 - m_RealLargeTopLeft.y;
 		}
 	}
 }
@@ -104,20 +168,29 @@ void CMyImageView::cvCursorRGB(CPoint point, cv::Point textPoint , CPoint rectTo
 	cv::Point RealPoint;
 	cv::Point imgPoint;
 
-	
-	imgPoint.x = m_DrawMat.cols;
-	imgPoint.y = m_DrawMat.rows;
-
-
 	if (point.x >= rectTopLeft.x && point.y >= rectTopLeft.y)
 	{
 		if (point.x <= rectBottomRight.x && point.y <= rectBottomRight.y)
 		{
+			// 이미지 확대 시
+			if (m_Islarger)
+			{
+				// 확대 시작지점 ~ 이미지 사이즈 / 2 길이 폭|높이
+				insidePoint.x = point.x - rectTopLeft.x + m_RealLargeTopLeft.x;
+				insidePoint.y = point.y - rectTopLeft.y + m_RealLargeTopLeft.y;
+				imgPoint.x = m_DrawMat.cols / 2;
+				imgPoint.y = m_DrawMat.rows / 2;
+			}
+			else
+			{
+				// 마우스 좌표 - 디스플레이 좌측상단 좌표 = 이미지 내부 좌표
+				insidePoint.x = point.x - rectTopLeft.x;
+				insidePoint.y = point.y - rectTopLeft.y;
+				imgPoint.x = m_DrawMat.cols;
+				imgPoint.y = m_DrawMat.rows;
 
-			// 마우스 좌표 - 디스플레이 좌측상단 좌표 = 이미지 내부 좌표
-			insidePoint.x = point.x - rectTopLeft.x;
-			insidePoint.y = point.y - rectTopLeft.y;
-
+			}
+			
 			// 디스플레이 좌표 != 이미지 좌표이므로 환산식이 필요함
 			// 그려질 이미지 길이 : 디스플레이 길이 = 이미지에서 좌표 (구할 값) : 측정된 좌표
 			// 이미지에서 좌표 = 측정된 좌표 * 그려질 이미지 길이 / 디스플레이 길이
@@ -136,7 +209,7 @@ void CMyImageView::cvCursorRGB(CPoint point, cv::Point textPoint , CPoint rectTo
 }
 
 
-// 생성될 때 지정된 디스플레이에 Mat 출력 20201113 장한결
+// 생성될 때 지정된 디스플레이에 Mat 출력 시 필요한 bitmapinfo 20201113 장한결
 void CMyImageView::createBitmapInfo(cv::Mat mat)
 {
 	if (m_pBitmapInfo != NULL)

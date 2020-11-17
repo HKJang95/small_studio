@@ -667,36 +667,10 @@ BOOL CSmall_StudioDlg::DrawSingleImage(int dispNum)
 
 BOOL CSmall_StudioDlg::DrawProcessed(int dispNum)
 {
-	// 확대시 (x 2 . 0)
-	if (m_pImageView[dispNum]->m_Islarger)
-	{
-		m_pImageView[dispNum]->largerScreen(m_pImageView[dispNum]->m_RealLargeTopLeft);
-		cv::Point cursorPt(m_pImageView[dispNum]->m_RealLargeTopLeft.x + 50, m_pImageView[dispNum]->m_RealLargeTopLeft.y + 50);
-		m_pImageView[dispNum]->cvCursorRGB(m_CurSor, cursorPt, m_rcDisp[dispNum].TopLeft(), m_rcDisp[dispNum].BottomRight());
-		m_pImageView[dispNum]->createBitmapInfo(m_pImageView[dispNum]->m_DrawMat);
-		SetStretchBltMode(m_pDC[dispNum]->GetSafeHdc(), COLORONCOLOR);
-		StretchDIBits
-			(
-			m_pDC[dispNum]->GetSafeHdc(), // Hdc
-			0, 0, // 디스플레이 내부 그리기 시작할 좌표
-			m_rcDisp[dispNum].Width(), m_rcDisp[dispNum].Height(), // 디스플레이 폭, 높이
-			m_pImageView[dispNum]->m_largerTopLeft.x, m_pImageView[dispNum]->m_largerTopLeft.y, // 영상 시작점 좌표
-			m_pImageView[dispNum]->m_DrawMat.cols / 2, m_pImageView[dispNum]->m_DrawMat.rows / 2, // 영상 폭, 높이
-			m_pImageView[dispNum]->m_DrawMat.data, // 이미지 포인터
-			m_pImageView[dispNum]->m_pBitmapInfo, // Bitmap 그릴 때 필요한 info (항상 고정임) 
-			DIB_RGB_COLORS, SRCCOPY // 기타정보
-			);
-	}
-	// 확대 후 이동시
-	if (m_pImageView[dispNum]->m_IsMove && m_pImageView[dispNum]->m_Islarger)
-	{
-
-	}
-	
 	// 커서 gray scale level만 표현 시 (원 본 사 이 즈)
 	if (!m_pImageView[dispNum]->m_Islarger)
 	{
-		m_pImageView[dispNum]->cvCursorRGB(m_CurSor, cv::Point(100,100) ,m_rcDisp[dispNum].TopLeft(), m_rcDisp[dispNum].BottomRight());
+		m_pImageView[dispNum]->cvCursorRGB(m_CurSor, cv::Point(100, 100), m_rcDisp[dispNum].TopLeft(), m_rcDisp[dispNum].BottomRight());
 		m_pImageView[dispNum]->createBitmapInfo(m_pImageView[dispNum]->m_DrawMat);
 		SetStretchBltMode(m_pDC[dispNum]->GetSafeHdc(), COLORONCOLOR);
 		StretchDIBits
@@ -711,6 +685,32 @@ BOOL CSmall_StudioDlg::DrawProcessed(int dispNum)
 			DIB_RGB_COLORS, SRCCOPY // 기타정보
 			);
 	}
+
+	// 확대시 (x 2 . 0)
+	if (m_pImageView[dispNum]->m_Islarger)
+	{
+		CString debug;
+		debug.Format(_T("%d %d    "), m_pImageView[dispNum]->m_RealLargeTopLeft.x, m_pImageView[dispNum]->m_RealLargeTopLeft.y);
+		OutputDebugString(debug);
+
+		m_pImageView[dispNum]->largerScreen(m_pImageView[dispNum]->m_RealLargeTopLeft);
+		cv::Point colorPt(m_pImageView[dispNum]->m_RealLargeTopLeft.x + 50, m_pImageView[dispNum]->m_RealLargeTopLeft.y + 50);
+		m_pImageView[dispNum]->cvCursorRGB(m_CurSor, colorPt, m_rcDisp[dispNum].TopLeft(), m_rcDisp[dispNum].BottomRight());
+		m_pImageView[dispNum]->createBitmapInfo(m_pImageView[dispNum]->m_DrawMat);
+		SetStretchBltMode(m_pDC[dispNum]->GetSafeHdc(), COLORONCOLOR);
+		StretchDIBits
+			(
+			m_pDC[dispNum]->GetSafeHdc(), // Hdc
+			0, 0, // 디스플레이 내부 그리기 시작할 좌표
+			m_rcDisp[dispNum].Width(), m_rcDisp[dispNum].Height(), // 디스플레이 폭, 높이
+			m_pImageView[dispNum]->m_largerTopLeft.x, m_pImageView[dispNum]->m_largerTopLeft.y, // 영상 시작점 좌표 | 바뀌는 값
+			m_pImageView[dispNum]->m_DrawMat.cols / 2, m_pImageView[dispNum]->m_DrawMat.rows / 2, // 영상 폭, 높이
+			m_pImageView[dispNum]->m_DrawMat.data, // 이미지 포인터 (Mat)
+			m_pImageView[dispNum]->m_pBitmapInfo, // Bitmap 그릴 때 필요한 info (항상 고정임) 
+			DIB_RGB_COLORS, SRCCOPY // 기타정보
+			);
+	}
+	
 	return TRUE;
 }
 
@@ -1089,8 +1089,6 @@ void CSmall_StudioDlg::Cam2OpenProc()
 	GetDlgItem(IDC_CAM2OPEN)->EnableWindow(TRUE);
 }
 
-
-
 // Screen1ThreadProc에서 실행되는 스레드 프로세스 20201110 장한결
 void CSmall_StudioDlg::thread1proc()
 {
@@ -1168,6 +1166,11 @@ void CSmall_StudioDlg::OnMouseMove(UINT nFlags, CPoint point)
 		{
 			if (m_CamTrig[i] == CAMERA_TRIG_SW)
 			{
+				if (m_pImageView[i]->m_IsMove)
+				{
+					m_pImageView[i]->largerTopLeftMover(point);
+				}
+
 				m_CurSor.x = point.x;
 				m_CurSor.y = point.y;
 				InvalidateRect(m_rcDisp[i], NULL);
@@ -1223,7 +1226,11 @@ void CSmall_StudioDlg::OnLButtonDown(UINT nFlags, CPoint point)
 	{
 		if (m_rcDisp[i].PtInRect(point))
 		{
-			m_pImageView[i]->m_IsMove = TRUE;
+			if (m_pImageView[i]->m_Islarger)
+			{
+				m_pImageView[i]->m_prevMouse = point;
+				m_pImageView[i]->m_IsMove = TRUE;
+			}
 		}
 	}
 	CDialogEx::OnLButtonDown(nFlags, point);
@@ -1235,6 +1242,7 @@ void CSmall_StudioDlg::OnLButtonUp(UINT nFlags, CPoint point)
 	// TODO: 여기에 메시지 처리기 코드를 추가 및/또는 기본값을 호출합니다.
 	for (int i = 0; i < MAXCAM; i++)
 	{
+		m_pImageView[i]->m_prevMouse = CPoint(0,0);
 		m_pImageView[i]->m_IsMove = FALSE;
 	}
 	CDialogEx::OnLButtonUp(nFlags, point);

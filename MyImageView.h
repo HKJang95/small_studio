@@ -27,10 +27,12 @@ public:
 	BITMAPINFO*		m_pBitmapInfo;
 	cv::Point		m_largerTopLeft;
 	cv::Point		m_RealLargeTopLeft;
+	CPoint			m_prevMouse; // 마우스 포인터 이동을 판단할 좌표값
 	int				m_showWidth; // 최종적으로 Out되는 이미지의 Size
 	int				m_showHeight;
 
 public:
+	void			largerTopLeftMover(CPoint mpoint);
 	void			largerScreen(cv::Point pt);
 	void			pByteToMat(BYTE* imgbits, int width, int height); // m_pMat 생성 후 변환
 	void			cvCursorRGB(CPoint point, cv::Point textPoint, CPoint rectTopLeft, CPoint rectBottomRight);
