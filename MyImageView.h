@@ -24,6 +24,7 @@ public:
 	BOOL			m_IsMove;
 	BOOL			m_IsCursorLarger;
 	BOOL			m_IsCursorBin;
+	BOOL			m_IsOverlay;
 	cv::Mat			m_OriMat; // OpenCV Mat
 	cv::Mat			m_DrawMat;
 	BITMAPINFO*		m_pBitmapInfo;
@@ -34,20 +35,14 @@ public:
 	int				m_showHeight;
 
 public:
+	cv::Point		cursorPtToImage(CPoint point, CPoint rectTopLeft, CPoint rectBottomRight);
+	void			cursorLarger(CPoint mpoint, CPoint rectTopLeft, CPoint rectBottomRight);
 	void			largerTopLeftMover(CPoint mpoint);
 	void			largerScreen(cv::Point pt);
 	void			pByteToMat(BYTE* imgbits, int width, int height); // m_pMat 생성 후 변환
 	void			cvCursorRGB(CPoint point, cv::Point textPoint, CPoint rectTopLeft, CPoint rectBottomRight);
 	void			createBitmapInfo(cv::Mat mat);
 	void			ImageViewerReset();
-	
-// GDIPlus 관련 : 사용 금지 20201113 장한결
-private:
-	Bitmap*			m_pBitmap; // 원본 이미지를 clone할 Bitmap* 주소
-	void			MatToBitmap(); // Mat의 내용을 Gdiplus::Bitmap으로 변환 (m_pBitmap에 주소)
-	void			cloneBitmap(Bitmap* oriBitmap);
-	void			cursorRGB(CPoint point, CPoint rectTopLeft, CPoint rectBottomRight);	// 영상 RGB값과 마우스 포인터 좌표 표시
-////////////////////////////////////////////
 
 protected:
 	DECLARE_MESSAGE_MAP()

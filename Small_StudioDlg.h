@@ -48,13 +48,9 @@ private:
 	CString			GetExePath();
 	BOOL			GetOptionValue(int mode);
 	BOOL			GetOptionValue(int mode, int dispNum);
-
-	//	BOOL			DIBMake(int dispNum);
-	//	BOOL			hbitmap2CImage(int dispNum);
 	BOOL			LightCtrl(int dispNum);
 	BOOL			LightSend(int dispNum, BOOL OnOff);
 	LRESULT			OnMyMsg(WPARAM length, LPARAM lpara);
-	BOOL			m_IsOverlay[MAXCAM];
 	CPoint			m_CurSor;
 
 public:
@@ -70,9 +66,7 @@ public:
 
 	CString			m_optionPath;		// option.ini 파일의 path (초기 실행시 한 번만 받아옴)
 
-	BYTE*			m_pBit[MAXCAM];		// 이미지버퍼
 	HBITMAP			m_hBmp[MAXCAM];
-	//	CImage*			m_pCOriImage[MAXCAM]; // 이미지 객체
 	CLightCtrl*		m_pLightCtrl;		 // Serial port Control용 객체
 	CClientDC*		m_pDC[MAXCAM];
 
@@ -104,8 +98,12 @@ public:
 	void			thread2proc(); // Screen2ThreadProc에서 실행되는 스레드 프로세스 (2번 Screen grab -> draw)
 	void			Cam1OpenProc();
 	void			Cam2OpenProc();
-	void			OnCtxtClickedLarg();
-	void			OnCtxtClickedBin();
+	void			OnCtxtClickedLarg1();
+	void			OnCtxtClickedBin1();
+	void			OnCtxtClickedLarg2();
+	void			OnCtxtClickedBin2();
+	void			OnCtxtClickedOvrly1();
+	void			OnCtxtClickedOvrly2();
 	
 	afx_msg void OnBnClickedDebugdragon();
 	afx_msg void OnMouseMove(UINT nFlags, CPoint point);
