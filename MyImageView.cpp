@@ -322,12 +322,19 @@ void CMyImageView::cursorLarger(CPoint mpoint, CPoint rectTopLeft, CPoint rectBo
 		drawPoint.y = RealPoint.y - (height * 4 + 4) - drawPosit;
 	}
 
+	// ROI 영역 기준점을 잡을 때
+	// 기준점이 영상 영역을 벗어나면 Lock
 	if (RealPoint.x + width >= m_DrawMat.cols)
 	{
-		return;
+		RealPoint.x = RealPoint.x - width;
 	}
 
 	if (RealPoint.y + height >= m_DrawMat.rows)
+	{
+		RealPoint.y = RealPoint.y - height;
+	}
+
+	if (RealPoint.x < 0 || RealPoint.y < 0)
 	{
 		return;
 	}
