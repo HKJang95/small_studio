@@ -81,6 +81,7 @@ CSmall_StudioDlg::CSmall_StudioDlg(CWnd* pParent /*=NULL*/)
 	, m_IsSerialOpen(FALSE)
 	, m_optionmodal(FALSE)
 	, m_CurSor(NULL)
+
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 
@@ -97,7 +98,6 @@ CSmall_StudioDlg::CSmall_StudioDlg(CWnd* pParent /*=NULL*/)
 		m_hPlayTerminate[i] = CreateEvent(NULL, true, false, eventName);
 		m_hOpenThread[i] = NULL;
 		m_pImageView[i] = NULL;
-		m_IsContext[i] = FALSE;
 	}
 
 	for (int i = 0; i < LIGHTCH; i++)
@@ -149,7 +149,6 @@ BOOL CSmall_StudioDlg::OnInitDialog()
 
 	for (int i = 0; i < MAXCAM; i++)
 	{
-//		m_pCOriImage[i] = new CImage();
 		ResetEvent(m_hPlayTerminate[i]);
 		
 		if (i == 0)
@@ -331,6 +330,7 @@ void CSmall_StudioDlg::OnDestroy()
 	::DeleteCriticalSection(&mSc);
 }
 
+// 카메라 Open 시 동작 시퀀스 20201118 장한결
 BOOL CSmall_StudioDlg::camOpenSeq(int dispNum)
 {
 	if (!m_IsSystemInit)
@@ -338,6 +338,7 @@ BOOL CSmall_StudioDlg::camOpenSeq(int dispNum)
 		AfxMessageBox(_T("System Init이 되지 않았습니다. 카메라를 사용할 수 없습니다."));
 		return FALSE;
 	}
+	
 	m_pCamCtrl[dispNum] = new CCrevisCtrl(m_CamIP[dispNum]);
 	m_statusCode = m_pCamCtrl[dispNum]->OpenDevice();
 	m_strErr.Format(_T("!!!!!!!!!!!!!!!!!!!!! DEBUG %d Cam status : %d !!!!!!!!!!!!!!!!!\n"), dispNum, m_statusCode);
@@ -614,7 +615,7 @@ BOOL CSmall_StudioDlg::GrabImageSWTrigger(int dispNum)
 	{
 		GetDlgItem(IDC_CAM2PLAY)->EnableWindow(FALSE);
 	}
-		// 조명 On
+	// 조명 On
 	LightSend(dispNum, TRUE);
 	// Image Grab
 	if (!m_pCamCtrl[dispNum]->GrabImageSW())
@@ -630,6 +631,7 @@ BOOL CSmall_StudioDlg::GrabImageSWTrigger(int dispNum)
 	return TRUE;
 }
 
+// 이미지 한장 draw 20201118 장한결
 BOOL CSmall_StudioDlg::DrawSingleImage(int dispNum)
 {
 	::EnterCriticalSection(&mSc);
@@ -644,6 +646,7 @@ BOOL CSmall_StudioDlg::DrawSingleImage(int dispNum)
 	return TRUE;
 }
 
+// 이미지 뷰어 기능 적용 이미지 draw 20201118 장한결
 BOOL CSmall_StudioDlg::DrawProcessed(int dispNum)
 {
 	int imgCol;
@@ -663,6 +666,7 @@ BOOL CSmall_StudioDlg::DrawProcessed(int dispNum)
 	// 확대시 (x 2 . 0)
 	if (m_pImageView[dispNum]->m_Islarger)
 	{
+		m_pImageView[dispNum]->m_DrawMat = m_pImageView[dispNum]->m_OriMat.clone(); // 현재 버그로 인해 확대시에는 원본이미지 제공
 		m_pImageView[dispNum]->largerScreen(m_pImageView[dispNum]->m_RealLargeTopLeft);
 		imgTopLeft = CPoint(m_pImageView[dispNum]->m_largerTopLeft.x, m_pImageView[dispNum]->m_largerTopLeft.y);
 		imgCol = m_pImageView[dispNum]->m_DrawMat.cols / 2;
@@ -670,14 +674,19 @@ BOOL CSmall_StudioDlg::DrawProcessed(int dispNum)
 		GrayLvdrawPoint = cv::Point(m_pImageView[dispNum]->m_RealLargeTopLeft.x + 50, m_pImageView[dispNum]->m_RealLargeTopLeft.y + 50);
 	}
 
-	// 커서부분 확대 지정시
-
-	m_pImageView[dispNum]->cvCursorRGB(m_CurSor, GrayLvdrawPoint, m_rcDisp[dispNum].TopLeft(), m_rcDisp[dispNum].BottomRight());
-	if (m_pImageView[dispNum]->m_IsCursorLarger)
+	// 현재 Issue로 인해 비확대시만 cursor RGB, 확대제공
+	if (!m_pImageView[dispNum]->m_Islarger)
 	{
-		m_pImageView[dispNum]->cursorLarger(m_CurSor, m_rcDisp[dispNum].TopLeft(), m_rcDisp[dispNum].BottomRight());
+		// 커서부분 Gray lv 표시
+		m_pImageView[dispNum]->cvCursorRGB(m_CurSor, GrayLvdrawPoint, m_rcDisp[dispNum].TopLeft(), m_rcDisp[dispNum].BottomRight());
+		// 커서부분 확대 지정시
+		if (m_pImageView[dispNum]->m_IsCursorLarger)
+		{
+			m_pImageView[dispNum]->cursorLarger(m_CurSor, m_rcDisp[dispNum].TopLeft(), m_rcDisp[dispNum].BottomRight());
+		}
+		m_pImageView[dispNum]->createBitmapInfo(m_pImageView[dispNum]->m_DrawMat);
+
 	}
-	m_pImageView[dispNum]->createBitmapInfo(m_pImageView[dispNum]->m_DrawMat);
 	SetStretchBltMode(m_pDC[dispNum]->GetSafeHdc(), COLORONCOLOR);
 	StretchDIBits
 		(
@@ -819,9 +828,8 @@ BOOL CSmall_StudioDlg::GetOptionValue(int mode, int dispNum)
 
 void CSmall_StudioDlg::OnBnClickedDebugdragon()
 {
-	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
-		
 
+	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
 }
 
 // dispNum번에 해당하는 카메라 객체 전용 조명 컨트롤러 명령 송신기. Connect 됐을 때만 동작합니다.
@@ -901,8 +909,6 @@ void CSmall_StudioDlg::Cam1OpenProc()
 		GetDlgItem(IDC_CAM1OPEN)->SetWindowTextW(_T("Camera 1 Closed"));
 		GetDlgItem(IDC_CAM1PLAY)->SetWindowTextW(_T("Play"));
 		GetDlgItem(IDC_CAM1PLAY)->EnableWindow(FALSE);
-		//		free(m_pBit[dispNum]);
-		//		m_pBit[dispNum] = NULL;
 	}
 	GetDlgItem(IDC_CAM1OPEN)->EnableWindow(TRUE);
 }
@@ -1042,12 +1048,13 @@ void CSmall_StudioDlg::OnMouseMove(UINT nFlags, CPoint point)
 	CDialogEx::OnMouseMove(nFlags, point);
 }
 
-
+// 더블 클릭시 동작하는 부분 20201118 장한결
 void CSmall_StudioDlg::OnLButtonDblClk(UINT nFlags, CPoint point)
 {
 	// TODO: 여기에 메시지 처리기 코드를 추가 및/또는 기본값을 호출합니다.
 	for (int i = 0; i < MAXCAM; i++)
 	{
+		// 마우스 포인터 위치가 디스플레이 내부에 있을때만 동작
 		if (m_rcDisp[i].PtInRect(point))
 		{
 			if (m_CamTrig[i] == CAMERA_TRIG_SW)
@@ -1107,7 +1114,6 @@ void CSmall_StudioDlg::OnLButtonUp(UINT nFlags, CPoint point)
 	CDialogEx::OnLButtonUp(nFlags, point);
 }
 
-
 void CSmall_StudioDlg::OnContextMenu(CWnd* pWnd, CPoint point)
 {
 	CPoint cvtPoint = point;
@@ -1122,7 +1128,6 @@ void CSmall_StudioDlg::OnContextMenu(CWnd* pWnd, CPoint point)
 
 		if (m_rcDisp[i].PtInRect(cvtPoint))
 		{
-			m_IsContext[i] = TRUE;
 			CMenu menu;
 			menu.CreatePopupMenu();
 			CString options[3];
@@ -1177,7 +1182,8 @@ void CSmall_StudioDlg::OnContextMenu(CWnd* pWnd, CPoint point)
 	}
 }
 
-// Context menu 버튼 클릭 20201117 장한결
+// Context menu 버튼 클릭시 동작 20201117 장한결
+// 전부 해당 옵션 TRUE / FALSE 뒤집기만 있음
 void CSmall_StudioDlg::OnCtxtClickedOvrly1()
 {
 	int dispNum = 0;

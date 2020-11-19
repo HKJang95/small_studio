@@ -43,61 +43,61 @@ public:
 	afx_msg void OnBnClickedCam2play();
 	afx_msg void OnDestroy();
 
+//////////////////////////////////// 함수 (private) ////////////////////////////////////////////////////
 private:
-	BOOL			camOpenSeq(int dispNum);
-	CString			GetExePath();
-	BOOL			GetOptionValue(int mode);
-	BOOL			GetOptionValue(int mode, int dispNum);
-	BOOL			LightCtrl(int dispNum);
-	BOOL			LightSend(int dispNum, BOOL OnOff);
-	LRESULT			OnMyMsg(WPARAM length, LPARAM lpara);
-	CPoint			m_CurSor;
+	BOOL			camOpenSeq(int dispNum); // 카메라 open 시퀀스
+	CString			GetExePath();			 // option.ini 사용 위한 실행파일 위치 얻기
+	BOOL			GetOptionValue(int mode);// option값 획득 (전부)
+	BOOL			GetOptionValue(int mode, int dispNum); // option값 획득 (play / open시 필요한 값들)
+	BOOL			LightSend(int dispNum, BOOL OnOff); // 조명에 명령 전송
+	LRESULT			OnMyMsg(WPARAM length, LPARAM lpara); // RS232 명령 수신기
+	CPoint			m_CurSor; // 현 커서위치
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 
 public:
+//////////////////////////////////// 카메라 관련 변수 ////////////////////////////////////////////////////
 	bool			m_IsSystemInit;		// Camera SDK Init 상태 점검입니다.
 	BOOL			m_IsOpen[MAXCAM];	// 카메라 Open 여부
-	BOOL			m_IsContext[MAXCAM];
 	BOOL			m_IsPlay[MAXCAM];	// Play 여부 (Grab & Show)
-	BOOL			m_IsSerialOpen;		// Seiral Port Open여부
 	CCrevisCtrl*	m_pCamCtrl[MAXCAM]; // 카메라용 Class 객체 포인터입니다. 
-	CMyImageView*	m_pImageView[MAXCAM];
+	HANDLE			m_hPlayThread[MAXCAM];		// Continuous mode용 thread
+	HANDLE			m_hPlayTerminate[MAXCAM];	// Continuous mode stop용 event
+	HANDLE			m_hOpenThread[MAXCAM];		// open 작업용 thread
+	DOUBLE			m_CamExposure[MAXCAM]; // Exposure time입니다.
+	CString			m_CamIP[MAXCAM];	// IP 주소 String입니다.
+	INT32			m_CamTrig[MAXCAM]; // 카메라의 Trigger mode 입니다.
+	CString			m_CamLightCh[MAXCAM]; // 카메라 별 사용할 Light Channel number입니다.
+///////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+////////////////////////////////이미지 뷰어 관련 변수/////////////////////////////////////////////////////
+	CMyImageView*	m_pImageView[MAXCAM];// 이미지 뷰어 객체
 	INT32			m_statusCode;		// 프로그램 에러 코드를 저장하는 변수입니다.
 	CString			m_strErr;			// 출력할 에러 String입니다
-
 	CString			m_optionPath;		// option.ini 파일의 path (초기 실행시 한 번만 받아옴)
-
-	HBITMAP			m_hBmp[MAXCAM];
-	CLightCtrl*		m_pLightCtrl;		 // Serial port Control용 객체
 	CClientDC*		m_pDC[MAXCAM];
-
-	HANDLE			m_hPlayThread[MAXCAM];		// Continuous mode용 thread
-	HANDLE			m_hPlayTerminate[MAXCAM];
-
-	HANDLE			m_hOpenThread[MAXCAM];
-
 	CRect			m_rcDisp[MAXCAM];
 	HDC				m_hDC[MAXCAM];
-
-	////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////조명 컨트롤러 관련 변수/////////////////////////////////////
+	CLightCtrl*		m_pLightCtrl;		 // Serial port Control용 객체
+	BOOL			m_IsSerialOpen;		// Seiral Port Open여부
 	BOOL			m_optionmodal;
-	//option.ini 파일에서 read 할 변수 20201103 장한결
 	CString			m_ComPort;			// 조명 Controller에서 사용할 port number입니다.
 	CString			m_BaudRate;			// 조명 Controller에서 사용할 baud rate입니다.
 	CString			m_OptionBright[LIGHTCH];
-	CString			m_CamIP[MAXCAM];	// IP 주소 String입니다.
-	DOUBLE			m_CamExposure[MAXCAM]; // Exposure time입니다.
-	INT32			m_CamTrig[MAXCAM]; // 카메라의 Trigger mode 입니다.
-	CString			m_CamLightCh[MAXCAM]; // 카메라 별 사용할 Light Channel number입니다.
-	////////////////////////////////////////////////////////////////////////////////////////////////
-	CRITICAL_SECTION mSc;
-	BOOL			DrawImageContinuous(int dispNum);
-	BOOL			GrabImageSWTrigger(int dispNum);
-	BOOL			DrawSingleImage(int dispNum);
-	BOOL			DrawProcessed(int dispNum);
-	void			thread1proc(); // Screen1ThreadProc에서 실행되는 스레드 프로세스 (1번 Screen grab -> draw)
-	void			thread2proc(); // Screen2ThreadProc에서 실행되는 스레드 프로세스 (2번 Screen grab -> draw)
-	void			Cam1OpenProc();
-	void			Cam2OpenProc();
+////////////////////////////////////////////////////////////////////////////////////////////////
+	CRITICAL_SECTION mSc; // 스레드 동작 Critical section
+
+	BOOL			DrawImageContinuous(int dispNum);	// continuous mode용 시퀀스
+	BOOL			GrabImageSWTrigger(int dispNum);	// SW Trigger 이용 이미지 Grab
+	BOOL			DrawSingleImage(int dispNum);		// single frame draw
+	BOOL			DrawProcessed(int dispNum);			// 이미지 뷰어 기능 적용된 Image draw
+	void			thread1proc();						// Screen1ThreadProc에서 실행되는 스레드 프로세스 (1번 Screen grab -> draw)
+	void			thread2proc();						// Screen2ThreadProc에서 실행되는 스레드 프로세스 (2번 Screen grab -> draw)
+	void			Cam1OpenProc();						// 1번 cam open용 스레드 프로세스
+	void			Cam2OpenProc();						// 2번 cam open용 스레드 프로세스
+	
+	// Context menu 클릭시 동작들
 	void			OnCtxtClickedLarg1();
 	void			OnCtxtClickedBin1();
 	void			OnCtxtClickedLarg2();
@@ -111,5 +111,5 @@ public:
 	afx_msg void OnRButtonDown(UINT nFlags, CPoint point);
 	afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
 	afx_msg void OnLButtonUp(UINT nFlags, CPoint point);
-	afx_msg void OnContextMenu(CWnd* /*pWnd*/, CPoint /*point*/);
+	afx_msg void OnContextMenu(CWnd* pWnd, CPoint point);
 };
