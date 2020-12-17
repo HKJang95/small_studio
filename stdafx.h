@@ -62,6 +62,7 @@ enum OPTION_READ_MODE
 
 #include <afxcontrolbars.h>     // MFC의 리본 및 컨트롤 막대 지원
 
+
 // GDI+
 #include <gdiplus.h>
 #pragma comment(lib, "gdiplus")
@@ -78,10 +79,14 @@ using namespace Gdiplus;
 #include <opencv2/opencv.hpp>
 
 
+#include "HVisionErrCode.h"
+#include "HVisionLibWrapper.h"
+#include "HVisionParameter.h"
+
 
 #ifdef _UNICODE
 #if defined _M_IX86
-#pragma comment(linker,"/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='x86' publicKeyToken='6595b64144ccf1df' language='*'\"")
+#pragma comment(linker,"/manifestdependency:\"type='win32' nae='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='x86' publicKeyToken='6595b64144ccf1df' language='*'\"")
 #elif defined _M_X64
 #pragma comment(linker,"/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='amd64' publicKeyToken='6595b64144ccf1df' language='*'\"")
 #else

@@ -326,12 +326,12 @@ void CMyImageView::cursorLarger(CPoint mpoint, CPoint rectTopLeft, CPoint rectBo
 	// 기준점이 영상 영역을 벗어나면 Lock
 	if (RealPoint.x + width >= m_DrawMat.cols)
 	{
-		RealPoint.x = RealPoint.x - width;
+		return;
 	}
 
 	if (RealPoint.y + height >= m_DrawMat.rows)
 	{
-		RealPoint.y = RealPoint.y - height;
+		return;
 	}
 
 	if (RealPoint.x < 0 || RealPoint.y < 0)

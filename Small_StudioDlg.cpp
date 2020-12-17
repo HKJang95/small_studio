@@ -81,6 +81,7 @@ CSmall_StudioDlg::CSmall_StudioDlg(CWnd* pParent /*=NULL*/)
 	, m_IsSerialOpen(FALSE)
 	, m_optionmodal(FALSE)
 	, m_CurSor(NULL)
+	, m_exePath(_T(""))
 
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
@@ -98,6 +99,8 @@ CSmall_StudioDlg::CSmall_StudioDlg(CWnd* pParent /*=NULL*/)
 		m_hPlayTerminate[i] = CreateEvent(NULL, true, false, eventName);
 		m_hOpenThread[i] = NULL;
 		m_pImageView[i] = NULL;
+		m_IsAlgoMod[i] = FALSE;
+		m_pHVSWrapper[i] = NULL;
 	}
 
 	for (int i = 0; i < LIGHTCH; i++)
@@ -109,6 +112,12 @@ CSmall_StudioDlg::CSmall_StudioDlg(CWnd* pParent /*=NULL*/)
 void CSmall_StudioDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialogEx::DoDataExchange(pDX);
+	DDX_Control(pDX, IDC_ALGOLIST1, m_AlgoList1);
+	DDX_Control(pDX, IDC_TACTIMELIST1, m_TacTimeList1);
+	DDX_Control(pDX, IDC_ALGOLIST2, m_AlgoLlist2);
+	DDX_Control(pDX, IDC_OUTPUTLIST2, m_OutputList2);
+	DDX_Control(pDX, IDC_TACTIMELIST2, m_TacTimeList2);
+	DDX_Control(pDX, IDC_OUTPUTLIST1, m_OutputList1);
 }
 
 BEGIN_MESSAGE_MAP(CSmall_StudioDlg, CDialogEx)
@@ -136,6 +145,19 @@ BEGIN_MESSAGE_MAP(CSmall_StudioDlg, CDialogEx)
 	ON_COMMAND(IDB_CONTEXTBIN1, &CSmall_StudioDlg::OnCtxtClickedBin1)
 	ON_COMMAND(IDB_CONTEXTLARG2, &CSmall_StudioDlg::OnCtxtClickedLarg2)
 	ON_COMMAND(IDB_CONTEXTBIN2, &CSmall_StudioDlg::OnCtxtClickedBin2)
+	ON_BN_CLICKED(IDC_ALGOMOD, &CSmall_StudioDlg::OnBnClickedAlgomod)
+	ON_BN_CLICKED(IDC_ALGOMOD2, &CSmall_StudioDlg::OnBnClickedAlgomod2)
+	ON_BN_CLICKED(IDC_ALGOADD1, &CSmall_StudioDlg::OnBnClickedAlgoadd1)
+	ON_BN_CLICKED(IDC_ALGOEDIT1, &CSmall_StudioDlg::OnBnClickedAlgoedit1)
+	ON_BN_CLICKED(IDC_ALGODEL1, &CSmall_StudioDlg::OnBnClickedAlgodel1)
+	ON_BN_CLICKED(IDC_ALGOADD2, &CSmall_StudioDlg::OnBnClickedAlgoadd2)
+	ON_BN_CLICKED(IDC_ALGOEDIT2, &CSmall_StudioDlg::OnBnClickedAlgoedit2)
+	ON_BN_CLICKED(IDC_ALGODEL2, &CSmall_StudioDlg::OnBnClickedAlgodel2)
+	ON_BN_CLICKED(IDC_RUN2, &CSmall_StudioDlg::OnBnClickedRun2)
+	ON_BN_CLICKED(IDC_SAVERCD2, &CSmall_StudioDlg::OnBnClickedSavercd2)
+	ON_BN_CLICKED(IDC_CLEARRCD2, &CSmall_StudioDlg::OnBnClickedClearrcd2)
+	ON_BN_CLICKED(IDC_LOADRCD1, &CSmall_StudioDlg::OnBnClickedLoadrcd1)
+	ON_BN_CLICKED(IDC_LOADRCD2, &CSmall_StudioDlg::OnBnClickedLoadrcd2)
 END_MESSAGE_MAP()
 
 
@@ -158,6 +180,7 @@ BOOL CSmall_StudioDlg::OnInitDialog()
 			GetDlgItem(IDC_PIC1)->GetWindowRect(m_rcDisp[i]);
 			ScreenToClient(&m_rcDisp[i]);
 			m_pImageView[i] = new CMyImageView();
+			m_pHVSWrapper[i] = new CHVisionLibWrapper();
 		}
 		if (i == 1)
 		{
@@ -166,10 +189,12 @@ BOOL CSmall_StudioDlg::OnInitDialog()
 			GetDlgItem(IDC_PIC2)->GetWindowRect(m_rcDisp[i]);
 			ScreenToClient(&m_rcDisp[i]);
 			m_pImageView[i] = new CMyImageView();
+			m_pHVSWrapper[i] = new CHVisionLibWrapper();
 		}
 	}
 
 	m_optionPath.Format(_T("%s\\option.ini"), GetExePath());
+	m_exePath = GetExePath();
 	GetOptionValue(OPT_READ_ALL);
 
 	if (ST_InitSystem() != MCAM_ERR_SUCCESS)
@@ -181,6 +206,41 @@ BOOL CSmall_StudioDlg::OnInitDialog()
 	{
 		m_IsSystemInit = true;
 	}
+
+	// 1번 Display용 알고리즘 화면 (Disable)
+	GetDlgItem(IDC_ALGOADD1)->ShowWindow(SW_HIDE);
+	GetDlgItem(IDC_ALGODEL1)->ShowWindow(SW_HIDE);
+	GetDlgItem(IDC_ALGOEDIT1)->ShowWindow(SW_HIDE);
+	GetDlgItem(IDC_CLEARRCD1)->ShowWindow(SW_HIDE);
+	GetDlgItem(IDC_SAVERCD1)->ShowWindow(SW_HIDE);
+	GetDlgItem(IDC_RUN1)->ShowWindow(SW_HIDE);
+	GetDlgItem(IDC_LOADRCD1)->ShowWindow(SW_HIDE);
+
+
+	GetDlgItem(IDC_ALGOLIST1)->ShowWindow(SW_HIDE);
+	GetDlgItem(IDC_OUTPUTLIST1)->ShowWindow(SW_HIDE);
+	GetDlgItem(IDC_TACTIMELIST1)->ShowWindow(SW_HIDE);
+
+	GetDlgItem(IDC_RECIPESTATIC1)->ShowWindow(SW_HIDE);
+	GetDlgItem(IDC_OUTPUTSTATIC1)->ShowWindow(SW_HIDE);
+	GetDlgItem(IDC_TACTIMESTATIC1)->ShowWindow(SW_HIDE);
+
+	// 2번 Display용 알고리즘 화면 (Disable)
+	GetDlgItem(IDC_ALGOADD2)->ShowWindow(SW_HIDE);
+	GetDlgItem(IDC_ALGODEL2)->ShowWindow(SW_HIDE);
+	GetDlgItem(IDC_ALGOEDIT2)->ShowWindow(SW_HIDE);
+	GetDlgItem(IDC_CLEARRCD2)->ShowWindow(SW_HIDE);
+	GetDlgItem(IDC_SAVERCD2)->ShowWindow(SW_HIDE);
+	GetDlgItem(IDC_RUN2)->ShowWindow(SW_HIDE);
+	GetDlgItem(IDC_LOADRCD2)->ShowWindow(SW_HIDE);
+
+	GetDlgItem(IDC_ALGOLIST2)->ShowWindow(SW_HIDE);
+	GetDlgItem(IDC_OUTPUTLIST2)->ShowWindow(SW_HIDE);
+	GetDlgItem(IDC_TACTIMELIST2)->ShowWindow(SW_HIDE);
+
+	GetDlgItem(IDC_RECIPESTATIC2)->ShowWindow(SW_HIDE);
+	GetDlgItem(IDC_OUTPUTSTATIC2)->ShowWindow(SW_HIDE);
+	GetDlgItem(IDC_TACTIMESTATIC2)->ShowWindow(SW_HIDE);
 
 	// 시스템 메뉴에 "정보..." 메뉴 항목을 추가합니다.
 	// IDM_ABOUTBOX는 시스템 명령 범위에 있어야 합니다.
@@ -302,6 +362,12 @@ void CSmall_StudioDlg::OnDestroy()
 		{
 			delete m_pImageView[i];
 			m_pImageView[i] = NULL;
+		}
+
+		if (m_pHVSWrapper[i] != NULL)
+		{
+			delete m_pHVSWrapper[i];
+			m_pHVSWrapper[i] = NULL;
 		}
 
 		if (m_IsOpen[i])
@@ -828,8 +894,6 @@ BOOL CSmall_StudioDlg::GetOptionValue(int mode, int dispNum)
 
 void CSmall_StudioDlg::OnBnClickedDebugdragon()
 {
-
-	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
 }
 
 // dispNum번에 해당하는 카메라 객체 전용 조명 컨트롤러 명령 송신기. Connect 됐을 때만 동작합니다.
@@ -1255,4 +1319,219 @@ void CSmall_StudioDlg::OnCtxtClickedBin2()
 	{
 		m_pImageView[dispNum]->m_IsCursorBin = TRUE;
 	}
+}
+
+
+
+// 1번 vision 알고리즘 모드 버튼
+void CSmall_StudioDlg::OnBnClickedAlgomod()
+{
+	int dispNum = 0;
+
+
+	if (m_IsAlgoMod[dispNum])
+	{
+		// 알고리즘 모드 OFF
+		m_IsAlgoMod[dispNum] = FALSE;
+
+		GetDlgItem(IDC_ALGOMOD)->SetWindowTextW(_T("Algorithm Mode OFF"));
+
+		GetDlgItem(IDC_ALGOADD1)->ShowWindow(SW_HIDE);
+		GetDlgItem(IDC_ALGODEL1)->ShowWindow(SW_HIDE);
+		GetDlgItem(IDC_ALGOEDIT1)->ShowWindow(SW_HIDE);
+		GetDlgItem(IDC_CLEARRCD1)->ShowWindow(SW_HIDE);
+		GetDlgItem(IDC_SAVERCD1)->ShowWindow(SW_HIDE);
+		GetDlgItem(IDC_LOADRCD1)->ShowWindow(SW_HIDE);
+		GetDlgItem(IDC_RUN1)->ShowWindow(SW_HIDE);
+
+
+		GetDlgItem(IDC_ALGOLIST1)->ShowWindow(SW_HIDE);
+		GetDlgItem(IDC_OUTPUTLIST1)->ShowWindow(SW_HIDE);
+		GetDlgItem(IDC_TACTIMELIST1)->ShowWindow(SW_HIDE);
+
+		GetDlgItem(IDC_RECIPESTATIC1)->ShowWindow(SW_HIDE);
+		GetDlgItem(IDC_OUTPUTSTATIC1)->ShowWindow(SW_HIDE);
+		GetDlgItem(IDC_TACTIMESTATIC1)->ShowWindow(SW_HIDE);
+
+		GetDlgItem(IDC_PIC2)->ShowWindow(SW_SHOW);
+		GetDlgItem(IDC_ALGOMOD2)->ShowWindow(SW_SHOW);
+		GetDlgItem(IDC_CAM2OPEN)->ShowWindow(SW_SHOW);
+		GetDlgItem(IDC_CAM2PLAY)->ShowWindow(SW_SHOW);
+	}
+	else
+	{
+		// 알고리즘 모드 ON
+		// Recipe 제작 위한 버튼 및 리스트뷰 생성
+		m_IsAlgoMod[dispNum] = TRUE;
+		GetDlgItem(IDC_ALGOMOD)->SetWindowTextW(_T("Algorithm Mode ON"));
+
+		GetDlgItem(IDC_ALGOADD1)->ShowWindow(SW_SHOW);
+		GetDlgItem(IDC_ALGODEL1)->ShowWindow(SW_SHOW);
+		GetDlgItem(IDC_ALGOEDIT1)->ShowWindow(SW_SHOW);
+		GetDlgItem(IDC_CLEARRCD1)->ShowWindow(SW_SHOW);
+		GetDlgItem(IDC_SAVERCD1)->ShowWindow(SW_SHOW);
+		GetDlgItem(IDC_LOADRCD1)->ShowWindow(SW_SHOW);
+		GetDlgItem(IDC_RUN1)->ShowWindow(SW_SHOW);
+		
+
+		GetDlgItem(IDC_ALGOLIST1)->ShowWindow(SW_SHOW);
+		GetDlgItem(IDC_OUTPUTLIST1)->ShowWindow(SW_SHOW);
+		GetDlgItem(IDC_TACTIMELIST1)->ShowWindow(SW_SHOW);
+
+		GetDlgItem(IDC_RECIPESTATIC1)->ShowWindow(SW_SHOW);
+		GetDlgItem(IDC_OUTPUTSTATIC1)->ShowWindow(SW_SHOW);
+		GetDlgItem(IDC_TACTIMESTATIC1)->ShowWindow(SW_SHOW);
+
+		GetDlgItem(IDC_PIC2)->ShowWindow(SW_HIDE);
+		GetDlgItem(IDC_ALGOMOD2)->ShowWindow(SW_HIDE);
+		GetDlgItem(IDC_CAM2OPEN)->ShowWindow(SW_HIDE);
+		GetDlgItem(IDC_CAM2PLAY)->ShowWindow(SW_HIDE);
+		
+	}
+
+	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+}
+
+// 2번 vision 알고리즘 모드 버튼
+void CSmall_StudioDlg::OnBnClickedAlgomod2()
+{
+	int dispNum = 1;
+
+
+	if (m_IsAlgoMod[dispNum])
+	{
+		// 알고리즘 모드 OFF
+		m_IsAlgoMod[dispNum] = FALSE;
+
+		GetDlgItem(IDC_ALGOMOD2)->SetWindowTextW(_T("Algorithm Mode OFF"));
+
+		GetDlgItem(IDC_ALGOADD2)->ShowWindow(SW_HIDE);
+		GetDlgItem(IDC_ALGODEL2)->ShowWindow(SW_HIDE);
+		GetDlgItem(IDC_ALGOEDIT2)->ShowWindow(SW_HIDE);
+		GetDlgItem(IDC_CLEARRCD2)->ShowWindow(SW_HIDE);
+		GetDlgItem(IDC_SAVERCD2)->ShowWindow(SW_HIDE);
+		GetDlgItem(IDC_LOADRCD2)->ShowWindow(SW_HIDE);
+		GetDlgItem(IDC_RUN2)->ShowWindow(SW_HIDE);
+
+		GetDlgItem(IDC_ALGOLIST2)->ShowWindow(SW_HIDE);
+		GetDlgItem(IDC_OUTPUTLIST2)->ShowWindow(SW_HIDE);
+		GetDlgItem(IDC_TACTIMELIST2)->ShowWindow(SW_HIDE);
+
+		GetDlgItem(IDC_RECIPESTATIC2)->ShowWindow(SW_HIDE);
+		GetDlgItem(IDC_OUTPUTSTATIC2)->ShowWindow(SW_HIDE);
+		GetDlgItem(IDC_TACTIMESTATIC2)->ShowWindow(SW_HIDE);
+
+		GetDlgItem(IDC_PIC1)->ShowWindow(SW_SHOW);
+		GetDlgItem(IDC_ALGOMOD)->ShowWindow(SW_SHOW);
+		GetDlgItem(IDC_CAM1OPEN)->ShowWindow(SW_SHOW);
+		GetDlgItem(IDC_CAM1PLAY)->ShowWindow(SW_SHOW);
+	}
+	else
+	{
+		// 알고리즘 모드 ON
+		// Recipe 제작 위한 버튼 및 리스트뷰 생성
+		m_IsAlgoMod[dispNum] = TRUE;
+		GetDlgItem(IDC_ALGOMOD2)->SetWindowTextW(_T("Algorithm Mode ON"));
+
+		GetDlgItem(IDC_ALGOADD2)->ShowWindow(SW_SHOW);
+		GetDlgItem(IDC_ALGODEL2)->ShowWindow(SW_SHOW);
+		GetDlgItem(IDC_ALGOEDIT2)->ShowWindow(SW_SHOW);
+		GetDlgItem(IDC_CLEARRCD2)->ShowWindow(SW_SHOW);
+		GetDlgItem(IDC_SAVERCD2)->ShowWindow(SW_SHOW);
+		GetDlgItem(IDC_RUN2)->ShowWindow(SW_SHOW);
+		GetDlgItem(IDC_LOADRCD2)->ShowWindow(SW_SHOW);
+
+
+		GetDlgItem(IDC_ALGOLIST2)->ShowWindow(SW_SHOW);
+		GetDlgItem(IDC_OUTPUTLIST2)->ShowWindow(SW_SHOW);
+		GetDlgItem(IDC_TACTIMELIST2)->ShowWindow(SW_SHOW);
+
+		GetDlgItem(IDC_RECIPESTATIC2)->ShowWindow(SW_SHOW);
+		GetDlgItem(IDC_OUTPUTSTATIC2)->ShowWindow(SW_SHOW);
+		GetDlgItem(IDC_TACTIMESTATIC2)->ShowWindow(SW_SHOW);
+
+		GetDlgItem(IDC_PIC1)->ShowWindow(SW_HIDE);
+		GetDlgItem(IDC_ALGOMOD)->ShowWindow(SW_HIDE);
+		GetDlgItem(IDC_CAM1OPEN)->ShowWindow(SW_HIDE);
+		GetDlgItem(IDC_CAM1PLAY)->ShowWindow(SW_HIDE);
+
+	}
+	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+}
+
+void CSmall_StudioDlg::OnBnClickedAlgoadd1()
+{
+	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+	CString path;
+	path.Format(_T("%s\\Top.rcd"));
+
+	if (m_pCamCtrl[0]->m_pImage != NULL)
+	{
+		m_pHVSWrapper[0]->LoadRecipe(CT2A(path));
+		int r = m_pHVSWrapper[0]->Run(m_pCamCtrl[0]->m_pImage, m_pCamCtrl[0]->m_camWidth, m_pCamCtrl[0]->m_camHeight, RUN_TYPE_STEPSAVE_ON);
+		CString result;
+		result.Format(_T("result : %d"), r);
+		AfxMessageBox(result);
+	}
+}
+
+
+void CSmall_StudioDlg::OnBnClickedAlgoedit1()
+{
+
+	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+}
+
+
+void CSmall_StudioDlg::OnBnClickedAlgodel1()
+{
+	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+}
+
+
+void CSmall_StudioDlg::OnBnClickedAlgoadd2()
+{
+	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+}
+
+
+void CSmall_StudioDlg::OnBnClickedAlgoedit2()
+{
+	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+}
+
+
+void CSmall_StudioDlg::OnBnClickedAlgodel2()
+{
+	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+}
+
+
+void CSmall_StudioDlg::OnBnClickedRun2()
+{
+	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+}
+
+
+void CSmall_StudioDlg::OnBnClickedSavercd2()
+{
+	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+}
+
+
+void CSmall_StudioDlg::OnBnClickedClearrcd2()
+{
+	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+}
+
+
+void CSmall_StudioDlg::OnBnClickedLoadrcd1()
+{
+	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+}
+
+
+void CSmall_StudioDlg::OnBnClickedLoadrcd2()
+{
+	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
 }

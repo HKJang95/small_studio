@@ -9,7 +9,7 @@
 #include "Small_Studio.h"
 #include "OptionDlg.h"
 #include "MyImageView.h"
-
+#include "afxwin.h"
 
 // CSmall_StudioDlg 대화 상자
 class CSmall_StudioDlg : public CDialogEx
@@ -75,6 +75,7 @@ public:
 	INT32			m_statusCode;		// 프로그램 에러 코드를 저장하는 변수입니다.
 	CString			m_strErr;			// 출력할 에러 String입니다
 	CString			m_optionPath;		// option.ini 파일의 path (초기 실행시 한 번만 받아옴)
+	CString			m_exePath;
 	CClientDC*		m_pDC[MAXCAM];
 	CRect			m_rcDisp[MAXCAM];
 	HDC				m_hDC[MAXCAM];
@@ -86,6 +87,14 @@ public:
 	CString			m_BaudRate;			// 조명 Controller에서 사용할 baud rate입니다.
 	CString			m_OptionBright[LIGHTCH];
 ////////////////////////////////////////////////////////////////////////////////////////////////
+
+	
+
+///////////////////////////////////비젼 알고리즘 관련 변수/////////////////////////////////////
+	BOOL			m_IsAlgoMod[MAXCAM];		// 알고리즘 모드 OnOff
+	CHVisionLibWrapper* m_pHVSWrapper[MAXCAM];			// HVS Wrapper
+//////////////////////////////////////////////////////////////////////////////////////////
+
 	CRITICAL_SECTION mSc; // 스레드 동작 Critical section
 
 	BOOL			DrawImageContinuous(int dispNum);	// continuous mode용 시퀀스
@@ -112,4 +121,24 @@ public:
 	afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
 	afx_msg void OnLButtonUp(UINT nFlags, CPoint point);
 	afx_msg void OnContextMenu(CWnd* pWnd, CPoint point);
+	afx_msg void OnBnClickedAlgomod();
+	afx_msg void OnBnClickedAlgomod2();
+	afx_msg void OnBnClickedAlgoadd1();
+	afx_msg void OnBnClickedAlgoedit1();
+	afx_msg void OnBnClickedAlgodel1();
+	CListBox m_AlgoList1;
+	CListBox m_TacTimeList1;
+	CListBox m_OutputList1;
+	afx_msg void OnBnClickedAlgoadd2();
+	afx_msg void OnBnClickedAlgoedit2();
+	afx_msg void OnBnClickedAlgodel2();
+	afx_msg void OnBnClickedRun2();
+	afx_msg void OnBnClickedSavercd2();
+	afx_msg void OnBnClickedClearrcd2();
+	afx_msg void OnBnClickedLoadrcd1();
+	afx_msg void OnBnClickedLoadrcd2();
+	CListBox m_AlgoLlist2;
+	CListBox m_OutputList2;
+	CListBox m_TacTimeList2;
+	
 };
