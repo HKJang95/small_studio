@@ -1683,7 +1683,17 @@ BOOL CSmall_StudioDlg::recipeRunSeq(int dispNum)
 	for (int i = 0; i < RET_VARIABLE_MAX; i++)
 	{
 		CString str;
-		str.Format(_T("Var %d : %.3lf"), m_pHVSWrapper[dispNum]->RetVariableGetValue(i));
+		CString varStr;
+
+		if (m_pHVSWrapper[dispNum]->RetVariableGetText(i) != NULL)
+		{
+			varStr.Format(_T("%s"), m_pHVSWrapper[dispNum]->RetVariableGetText(i));
+		}
+		else
+		{
+			varStr = _T(" ");
+		}
+		str.Format(_T("Var %d %s : %.3lf"), i, varStr, m_pHVSWrapper[dispNum]->RetVariableGetValue(i));
 		if (dispNum == 0)
 		{
 			m_OutputList1.InsertString(-1, str);
