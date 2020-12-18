@@ -54,6 +54,15 @@ private:
 	CPoint			m_CurSor; // 현 커서위치
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+////////////////////////////////// HVision (알고리즘) 관련 함수 /////////////////////////////////////////
+
+	CString			findRCDPath();
+	BOOL			recipeLoadSeq(int dispNum);
+	BOOL			recipeSaveSeq(int dispNum);
+	BOOL			recipeAddSeq(int dispNum);
+	BOOL			recipeRunSeq(int dispNum);
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 
 public:
 //////////////////////////////////// 카메라 관련 변수 ////////////////////////////////////////////////////
@@ -140,5 +149,10 @@ public:
 	CListBox m_AlgoLlist2;
 	CListBox m_OutputList2;
 	CListBox m_TacTimeList2;
-	
+	afx_msg void OnBnClickedClearrcd1();
+	afx_msg void OnBnClickedSavercd1();
+	afx_msg void OnBnClickedRecipeup2();
+	afx_msg void OnBnClickedRecipedown2();
+	afx_msg void OnBnClickedRecipeup1();
+	afx_msg void OnBnClickedRecipedown1();
 };

@@ -158,6 +158,12 @@ BEGIN_MESSAGE_MAP(CSmall_StudioDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_CLEARRCD2, &CSmall_StudioDlg::OnBnClickedClearrcd2)
 	ON_BN_CLICKED(IDC_LOADRCD1, &CSmall_StudioDlg::OnBnClickedLoadrcd1)
 	ON_BN_CLICKED(IDC_LOADRCD2, &CSmall_StudioDlg::OnBnClickedLoadrcd2)
+	ON_BN_CLICKED(IDC_CLEARRCD1, &CSmall_StudioDlg::OnBnClickedClearrcd1)
+	ON_BN_CLICKED(IDC_SAVERCD1, &CSmall_StudioDlg::OnBnClickedSavercd1)
+	ON_BN_CLICKED(IDC_RECIPEUP2, &CSmall_StudioDlg::OnBnClickedRecipeup2)
+	ON_BN_CLICKED(IDC_RECIPEDOWN2, &CSmall_StudioDlg::OnBnClickedRecipedown2)
+	ON_BN_CLICKED(IDC_RECIPEUP1, &CSmall_StudioDlg::OnBnClickedRecipeup1)
+	ON_BN_CLICKED(IDC_RECIPEDOWN1, &CSmall_StudioDlg::OnBnClickedRecipedown1)
 END_MESSAGE_MAP()
 
 
@@ -1454,7 +1460,6 @@ void CSmall_StudioDlg::OnBnClickedAlgomod2()
 		GetDlgItem(IDC_ALGOMOD)->ShowWindow(SW_HIDE);
 		GetDlgItem(IDC_CAM1OPEN)->ShowWindow(SW_HIDE);
 		GetDlgItem(IDC_CAM1PLAY)->ShowWindow(SW_HIDE);
-
 	}
 	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
 }
@@ -1462,17 +1467,7 @@ void CSmall_StudioDlg::OnBnClickedAlgomod2()
 void CSmall_StudioDlg::OnBnClickedAlgoadd1()
 {
 	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
-	CString path;
-	path.Format(_T("%s\\Top.rcd"));
 
-	if (m_pCamCtrl[0]->m_pImage != NULL)
-	{
-		m_pHVSWrapper[0]->LoadRecipe(CT2A(path));
-		int r = m_pHVSWrapper[0]->Run(m_pCamCtrl[0]->m_pImage, m_pCamCtrl[0]->m_camWidth, m_pCamCtrl[0]->m_camHeight, RUN_TYPE_STEPSAVE_ON);
-		CString result;
-		result.Format(_T("result : %d"), r);
-		AfxMessageBox(result);
-	}
 }
 
 
@@ -1512,15 +1507,37 @@ void CSmall_StudioDlg::OnBnClickedRun2()
 	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
 }
 
-
-void CSmall_StudioDlg::OnBnClickedSavercd2()
+void CSmall_StudioDlg::OnBnClickedSavercd1()
 {
+	int dispNum = 0;
+	recipeSaveSeq(dispNum);
 	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
 }
 
+void CSmall_StudioDlg::OnBnClickedSavercd2()
+{
+	int dispNum = 1;
+	recipeSaveSeq(dispNum);
+	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+}
+
+void CSmall_StudioDlg::OnBnClickedClearrcd1()
+{
+	if (AfxMessageBox(_T("레시피를 전체 클리어 하시겠습니까?"), MB_YESNO) == IDYES)
+	{
+		m_AlgoList1.ResetContent();
+		m_pHVSWrapper[0]->ClearRecipeStep();
+	}
+	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+}
 
 void CSmall_StudioDlg::OnBnClickedClearrcd2()
 {
+	if (AfxMessageBox(_T("레시피를 전체 클리어 하시겠습니까?"), MB_YESNO) == IDYES)
+	{
+		m_AlgoList1.ResetContent();
+		m_pHVSWrapper[0]->ClearRecipeStep();
+	}
 	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
 }
 
@@ -1528,10 +1545,153 @@ void CSmall_StudioDlg::OnBnClickedClearrcd2()
 void CSmall_StudioDlg::OnBnClickedLoadrcd1()
 {
 	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+	int dispNum = 0;
+	recipeLoadSeq(dispNum);
+
 }
 
 
 void CSmall_StudioDlg::OnBnClickedLoadrcd2()
 {
 	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+	int dispNum = 1;
+	recipeLoadSeq(dispNum);
+}
+
+void CSmall_StudioDlg::OnBnClickedRecipeup1()
+{
+	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+}
+
+
+void CSmall_StudioDlg::OnBnClickedRecipedown1()
+{
+	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+}
+
+void CSmall_StudioDlg::OnBnClickedRecipeup2()
+{
+	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+}
+
+
+void CSmall_StudioDlg::OnBnClickedRecipedown2()
+{
+	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+}
+
+
+
+CString CSmall_StudioDlg::findRCDPath()
+{
+	CString extension = _T("rcd files(*.rcd)|*.rcd|"); // rcd 파일 표시
+	CFileDialog filedlg(TRUE, _T(".rcd"), NULL, OFN_HIDEREADONLY | OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST, extension, this);
+
+	if (filedlg.DoModal() == IDOK)
+	{
+		CString ret = filedlg.GetPathName();
+		return ret;
+	}
+	return _T("");
+}
+
+BOOL CSmall_StudioDlg::recipeSaveSeq(int dispNum)
+{
+	CString extension = _T("rcd files(*.rcd)|*.rcd|"); // rcd 파일 표시
+	CFileDialog filedlg(FALSE, _T(".rcd"), NULL, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, extension, this);
+
+	if (filedlg.DoModal() == IDOK)
+	{
+		CString path = filedlg.GetPathName();
+		if (!m_pHVSWrapper[dispNum]->SaveRecipe(CT2A(path)) == RET_FAIL)
+			return TRUE;
+		else
+			return FALSE;
+	}
+	else
+	{
+		return TRUE;
+	}
+	return FALSE;
+
+}
+
+BOOL CSmall_StudioDlg::recipeLoadSeq(int dispNum)
+{
+	USES_CONVERSION;
+	CString fpath = findRCDPath();
+	char buf[4096];
+	DWORD dwRead;
+
+	::ZeroMemory(buf, 4096);
+
+	if (fpath != _T(""))
+	{
+		if (m_pHVSWrapper[dispNum]->LoadRecipe(CT2A(fpath)) == RET_OK)
+		{
+			int recipeCount = m_pHVSWrapper[dispNum]->GetRecipeCount();
+			
+			HANDLE hFile = CreateFile(fpath, GENERIC_READ, 0, NULL, OPEN_EXISTING,
+				FILE_ATTRIBUTE_NORMAL | FILE_FLAG_SEQUENTIAL_SCAN, NULL); // 파일핸들 얻기
+
+			ReadFile(hFile, buf, sizeof(buf), &dwRead, NULL); // buf에 파일크기만큼 저장
+			CloseHandle(hFile); // 이제 필요없어진 핸들은 닫는다
+			CString result = A2T(buf); // char to 2byte Char
+			CString tok;
+			
+			if (dispNum == 0)
+			{
+				m_AlgoList1.ResetContent();
+			}
+
+			if (dispNum == 1)
+			{
+				m_AlgoLlist2.ResetContent();
+			}
+
+			for (int i = 0; i < recipeCount; i++)
+			{
+				AfxExtractSubString(tok, result, i, '\n');
+				if (dispNum == 0)
+				{
+					m_AlgoList1.InsertString(-1, tok);
+				}
+
+				if (dispNum == 1)
+				{
+					m_AlgoLlist2.InsertString(-1, tok);
+				}
+			}
+		}
+		else
+		{
+			AfxMessageBox(_T("Recipe Load 실패!"));
+		}
+	}
+	return TRUE;
+}
+
+BOOL CSmall_StudioDlg::recipeRunSeq(int dispNum)
+{
+	m_pHVSWrapper[dispNum]->Run(
+		m_pCamCtrl[dispNum]->m_pImage,
+		m_pCamCtrl[dispNum]->m_camWidth,
+		m_pCamCtrl[dispNum]->m_camHeight,
+		8,
+		RUN_TYPE_STEPSAVE_ON);
+
+	for (int i = 0; i < RET_VARIABLE_MAX; i++)
+	{
+		CString str;
+		str.Format(_T("Var %d : %.3lf"), m_pHVSWrapper[dispNum]->RetVariableGetValue(i));
+		if (dispNum == 0)
+		{
+			m_OutputList1.InsertString(-1, str);
+		}
+
+		if (dispNum == 1)
+		{
+			m_OutputList2.InsertString(-1, str);
+		}
+	}
 }
