@@ -164,6 +164,7 @@ BEGIN_MESSAGE_MAP(CSmall_StudioDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_RECIPEDOWN2, &CSmall_StudioDlg::OnBnClickedRecipedown2)
 	ON_BN_CLICKED(IDC_RECIPEUP1, &CSmall_StudioDlg::OnBnClickedRecipeup1)
 	ON_BN_CLICKED(IDC_RECIPEDOWN1, &CSmall_StudioDlg::OnBnClickedRecipedown1)
+	ON_BN_CLICKED(IDC_RUN1, &CSmall_StudioDlg::OnBnClickedRun1)
 END_MESSAGE_MAP()
 
 
@@ -247,6 +248,11 @@ BOOL CSmall_StudioDlg::OnInitDialog()
 	GetDlgItem(IDC_RECIPESTATIC2)->ShowWindow(SW_HIDE);
 	GetDlgItem(IDC_OUTPUTSTATIC2)->ShowWindow(SW_HIDE);
 	GetDlgItem(IDC_TACTIMESTATIC2)->ShowWindow(SW_HIDE);
+
+	GetDlgItem(IDC_RECIPEDOWN1)->ShowWindow(SW_HIDE);
+	GetDlgItem(IDC_RECIPEUP1)->ShowWindow(SW_HIDE);
+	GetDlgItem(IDC_RECIPEDOWN2)->ShowWindow(SW_HIDE);
+	GetDlgItem(IDC_RECIPEUP2)->ShowWindow(SW_HIDE);
 
 	// 시스템 메뉴에 "정보..." 메뉴 항목을 추가합니다.
 	// IDM_ABOUTBOX는 시스템 명령 범위에 있어야 합니다.
@@ -1349,6 +1355,8 @@ void CSmall_StudioDlg::OnBnClickedAlgomod()
 		GetDlgItem(IDC_SAVERCD1)->ShowWindow(SW_HIDE);
 		GetDlgItem(IDC_LOADRCD1)->ShowWindow(SW_HIDE);
 		GetDlgItem(IDC_RUN1)->ShowWindow(SW_HIDE);
+		GetDlgItem(IDC_RECIPEDOWN1)->ShowWindow(SW_HIDE);
+		GetDlgItem(IDC_RECIPEUP1)->ShowWindow(SW_HIDE);
 
 
 		GetDlgItem(IDC_ALGOLIST1)->ShowWindow(SW_HIDE);
@@ -1378,7 +1386,8 @@ void CSmall_StudioDlg::OnBnClickedAlgomod()
 		GetDlgItem(IDC_SAVERCD1)->ShowWindow(SW_SHOW);
 		GetDlgItem(IDC_LOADRCD1)->ShowWindow(SW_SHOW);
 		GetDlgItem(IDC_RUN1)->ShowWindow(SW_SHOW);
-		
+		GetDlgItem(IDC_RECIPEDOWN1)->ShowWindow(SW_SHOW);
+		GetDlgItem(IDC_RECIPEUP1)->ShowWindow(SW_SHOW);
 
 		GetDlgItem(IDC_ALGOLIST1)->ShowWindow(SW_SHOW);
 		GetDlgItem(IDC_OUTPUTLIST1)->ShowWindow(SW_SHOW);
@@ -1418,6 +1427,8 @@ void CSmall_StudioDlg::OnBnClickedAlgomod2()
 		GetDlgItem(IDC_SAVERCD2)->ShowWindow(SW_HIDE);
 		GetDlgItem(IDC_LOADRCD2)->ShowWindow(SW_HIDE);
 		GetDlgItem(IDC_RUN2)->ShowWindow(SW_HIDE);
+		GetDlgItem(IDC_RECIPEDOWN2)->ShowWindow(SW_HIDE);
+		GetDlgItem(IDC_RECIPEUP2)->ShowWindow(SW_HIDE);
 
 		GetDlgItem(IDC_ALGOLIST2)->ShowWindow(SW_HIDE);
 		GetDlgItem(IDC_OUTPUTLIST2)->ShowWindow(SW_HIDE);
@@ -1446,6 +1457,8 @@ void CSmall_StudioDlg::OnBnClickedAlgomod2()
 		GetDlgItem(IDC_SAVERCD2)->ShowWindow(SW_SHOW);
 		GetDlgItem(IDC_RUN2)->ShowWindow(SW_SHOW);
 		GetDlgItem(IDC_LOADRCD2)->ShowWindow(SW_SHOW);
+		GetDlgItem(IDC_RECIPEDOWN2)->ShowWindow(SW_SHOW);
+		GetDlgItem(IDC_RECIPEUP2)->ShowWindow(SW_SHOW);
 
 
 		GetDlgItem(IDC_ALGOLIST2)->ShowWindow(SW_SHOW);
@@ -1501,10 +1514,18 @@ void CSmall_StudioDlg::OnBnClickedAlgodel2()
 	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
 }
 
+void CSmall_StudioDlg::OnBnClickedRun1()
+{
+	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+	int dispNum = 0;
+	recipeRunSeq(dispNum);
+}
 
 void CSmall_StudioDlg::OnBnClickedRun2()
 {
 	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+	int dispNum = 1;
+	recipeRunSeq(dispNum);
 }
 
 void CSmall_StudioDlg::OnBnClickedSavercd1()
@@ -1603,10 +1624,10 @@ BOOL CSmall_StudioDlg::recipeSaveSeq(int dispNum)
 	if (filedlg.DoModal() == IDOK)
 	{
 		CString path = filedlg.GetPathName();
-		if (!m_pHVSWrapper[dispNum]->SaveRecipe(CT2A(path)) == RET_FAIL)
-			return TRUE;
-		else
+		if (m_pHVSWrapper[dispNum]->SaveRecipe(CT2A(path)) == RET_FAIL)
 			return FALSE;
+		else
+			return TRUE;
 	}
 	else
 	{
@@ -1673,13 +1694,31 @@ BOOL CSmall_StudioDlg::recipeLoadSeq(int dispNum)
 
 BOOL CSmall_StudioDlg::recipeRunSeq(int dispNum)
 {
+	USES_CONVERSION;
+	if (m_pCamCtrl[dispNum] == NULL || m_pCamCtrl[dispNum]->m_pImage == NULL)
+	{ 
+		return FALSE;
+	}
+
+	::EnterCriticalSection(&mSc);
 	m_pHVSWrapper[dispNum]->Run(
 		m_pCamCtrl[dispNum]->m_pImage,
 		m_pCamCtrl[dispNum]->m_camWidth,
 		m_pCamCtrl[dispNum]->m_camHeight,
 		8,
 		RUN_TYPE_STEPSAVE_ON);
+	::LeaveCriticalSection(&mSc);
 
+	if (dispNum == 0)
+	{
+		m_OutputList1.ResetContent();
+	}
+
+	if (dispNum == 1)
+	{
+		m_OutputList2.ResetContent();
+	}
+	
 	for (int i = 0; i < RET_VARIABLE_MAX; i++)
 	{
 		CString str;
@@ -1693,7 +1732,8 @@ BOOL CSmall_StudioDlg::recipeRunSeq(int dispNum)
 		{
 			varStr = _T(" ");
 		}
-		str.Format(_T("Var %d %s : %.3lf"), i, varStr, m_pHVSWrapper[dispNum]->RetVariableGetValue(i));
+		str.Format(_T(" %d %s : %.3lf"), i, m_pHVSWrapper[dispNum]->RetVariableGetText(i), m_pHVSWrapper[dispNum]->RetVariableGetValue(i));
+		OutputDebugString(A2T(m_pHVSWrapper[dispNum]->RetVariableGetText(i)));
 		if (dispNum == 0)
 		{
 			m_OutputList1.InsertString(-1, str);
@@ -1704,4 +1744,7 @@ BOOL CSmall_StudioDlg::recipeRunSeq(int dispNum)
 			m_OutputList2.InsertString(-1, str);
 		}
 	}
+	return TRUE;
 }
+
+

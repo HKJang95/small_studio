@@ -155,4 +155,5 @@ public:
 	afx_msg void OnBnClickedRecipedown2();
 	afx_msg void OnBnClickedRecipeup1();
 	afx_msg void OnBnClickedRecipedown1();
+	afx_msg void OnBnClickedRun1();
 };
